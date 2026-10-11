@@ -15,7 +15,7 @@ export const colores = {
   sinSenal: '#FFE0B2',
   sinSenalTexto: '#BF360C',
   error: '#C62828',
-  mosaicos: { publicar: '#E8F5E9', pedidos: '#FFF8E1', ventas: '#E3F2FD', mensajes: '#F3E5F5' },
+  mosaicos: { publicar: '#E8F5E9', productos: '#FBE9E7', pedidos: '#FFF8E1', ventas: '#E3F2FD', mensajes: '#F3E5F5' },
 };
 
 export const espacio = { xs: 4, s: 8, m: 16, l: 24, xl: 32 };

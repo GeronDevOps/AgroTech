@@ -5,12 +5,14 @@ const { apiRoutes } = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error-handler');
 const { cors } = require('./middleware/cors');
 const config = require('./config/env');
+const { createAlmacenFotosLocal } = require('./almacenamiento/fotos-local');
 
 /**
  * Crea la aplicación Express sin abrir el puerto, para poder probarla con supertest.
- * @param {{ pool: import('pg').Pool }} deps dependencias inyectadas
+ * @param {{ pool: import('pg').Pool, almacenFotos?: object }} deps dependencias inyectadas
  */
 function createApp(deps) {
+  const almacenFotos = deps.almacenFotos || createAlmacenFotosLocal({ dir: config.fotos.dir });
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // detrás del Application Load Balancer de AWS
@@ -26,7 +28,11 @@ function createApp(deps) {
   app.use(cors(config.corsOrigins));
   app.use(express.json({ limit: '1mb' }));
 
-  app.use('/api/v1', apiRoutes(deps));
+  // Fotos del driver local: nombres únicos por publicación, se pueden guardar en caché mucho tiempo.
+  if (almacenFotos.tipo === 'local') {
+    app.use('/fotos', express.static(almacenFotos.dir, { immutable: true, maxAge: '30d', index: false }));
+  }
+  app.use('/api/v1', apiRoutes({ ...deps, almacenFotos }));
 
   app.use(notFound);
   app.use(errorHandler);

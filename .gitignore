@@ -27,3 +27,7 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Fotos del driver local de la API
+api/uploads/
+api/tmp/

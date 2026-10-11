@@ -49,6 +49,16 @@ const config = Object.freeze({
     minutosBloqueo: 15, // CU-21 A1
     versionAvisoPrivacidad: process.env.AVISO_PRIVACIDAD_VERSION || '1.0',
   }),
+  fotos: Object.freeze({
+    // Driver local (desarrollo y pruebas). En AWS se reemplaza por S3 (AGRO-16) con la misma interfaz.
+    dir: process.env.FOTOS_DIR
+      ? path.resolve(process.env.FOTOS_DIR)
+      : path.resolve(__dirname, isTest ? '../../tmp/fotos-pruebas' : '../../uploads'),
+    // URL pública base; si está vacía se arma con el host de la petición (útil con la IP de la LAN).
+    urlBase: (process.env.FOTOS_URL_BASE || '').replace(/\/$/, ''),
+    maxBytes: 300 * 1024, // RNF-09: foto comprimida ≤ 300 KB
+    maxBytesMiniatura: 40 * 1024, // 20 miniaturas ≈ 400 KB → primera página ≤ 500 KB (RNF-09)
+  }),
   migrationsDir: process.env.MIGRATIONS_DIR
     ? path.resolve(process.env.MIGRATIONS_DIR)
     : path.resolve(__dirname, '../../../db/migrations'),

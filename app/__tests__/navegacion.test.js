@@ -34,13 +34,13 @@ describe('Navegación por rol con sesión real (AGRO-3 · AGRO-5)', () => {
     await waitFor(() => expect(screen.getByTestId('estado-servidor')).toHaveTextContent('Servidor: conectado · migración 001'));
   });
 
-  test('el productor inicia sesión, llega a sus cuatro accesos y el token queda en el almacén seguro', async () => {
+  test('el productor inicia sesión, llega a sus accesos y el token queda en el almacén seguro', async () => {
     const llamadas = apiFalsa({ 'POST /auth/sesion': () => [200, sesionDe(usuarioRosa)] });
     const app = await abrirApp();
     await entrarComo(usuarioRosa);
     await waitFor(() => expect(app.getPathname()).toBe('/productor'));
     expect(screen.getByText('Hola, Rosa')).toBeTruthy();
-    for (const t of ['Publicar producto', 'Mis pedidos', 'Mis ventas', 'Mensajes']) expect(screen.getByText(t)).toBeTruthy();
+    for (const t of ['Publicar producto', 'Mis productos', 'Mis pedidos', 'Mis ventas', 'Mensajes']) expect(screen.getByText(t)).toBeTruthy();
 
     const login = llamadas.find((l) => l.clave === 'POST /auth/sesion');
     expect(login.cuerpo).toEqual({ identificador: 'rosa@correo.co', contrasena: 'cosecha2026' });
@@ -56,11 +56,11 @@ describe('Navegación por rol con sesión real (AGRO-3 · AGRO-5)', () => {
   });
 
   test('el consumidor llega al catálogo y no ve rutas del productor', async () => {
-    apiFalsa({ 'POST /auth/sesion': () => [200, sesionDe(usuarioAndres)] });
+    apiFalsa({ 'POST /auth/sesion': () => [200, sesionDe(usuarioAndres)], 'GET /productos?pagina=1&tamano=20': () => [200, { productos: [], pagina: 1, tamano: 20, total: 0, hayMas: false }] });
     const app = await abrirApp();
     await entrarComo(usuarioAndres);
     await waitFor(() => expect(app.getPathname()).toBe('/consumidor'));
-    expect(screen.getByText('Catálogo con filtros')).toBeTruthy();
+    expect(await screen.findByLabelText('Filtro Municipio')).toBeTruthy();
     expect(screen.queryByText('Mis ventas')).toBeNull();
   });
 

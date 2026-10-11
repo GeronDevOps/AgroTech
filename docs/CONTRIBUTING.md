@@ -88,5 +88,6 @@ Formato único de respuesta de error:
 | 403 | Sin permiso por rol (`SIN_PERMISO`) o cuenta suspendida (`CUENTA_SUSPENDIDA`) |
 | 423 | Cuenta bloqueada temporalmente (`CUENTA_BLOQUEADA`) |
 | 404 | Recurso inexistente |
-| 409 | Conflicto de stock, de versión, de transición de estado o cuenta existente (`CUENTA_EXISTENTE`) |
+| 409 | Conflicto de stock, de versión (`CONFLICTO_VERSION`), de transición de estado, cuenta existente (`CUENTA_EXISTENTE`) o id ajeno (`ID_EN_USO`) |
+| 413 | Foto de más de 300 KB (`FOTO_MUY_GRANDE`) |
 | 500 | Error no controlado (se registra; no se exponen detalles) |

@@ -11,3 +11,30 @@ jest.mock('expo-secure-store', () => {
     deleteItemAsync: jest.fn(async (k) => { datos.delete(k); }),
   };
 });
+
+// UUID fijo para comprobar la idempotencia de la publicación.
+jest.mock('expo-crypto', () => ({ randomUUID: jest.fn(() => '11111111-1111-4111-8111-111111111111') }));
+
+// Cámara/galería y compresión simuladas: devuelven una foto ya comprimida.
+jest.mock('expo-image-picker', () => {
+  const foto = { canceled: false, assets: [{ uri: 'file:///original.jpg', width: 3000, height: 2250 }] };
+  return {
+    requestCameraPermissionsAsync: jest.fn(async () => ({ granted: true })),
+    requestMediaLibraryPermissionsAsync: jest.fn(async () => ({ granted: true })),
+    launchCameraAsync: jest.fn(async () => foto),
+    launchImageLibraryAsync: jest.fn(async () => foto),
+  };
+});
+
+jest.mock('expo-image-manipulator', () => ({
+  SaveFormat: { JPEG: 'jpeg' },
+  ImageManipulator: {
+    manipulate: jest.fn(() => ({
+      resize: ({ width }) => ({
+        renderAsync: async () => ({
+          saveAsync: async () => ({ uri: `file:///comprimida-${width}.jpg`, width, height: Math.round(width * 0.75) }),
+        }),
+      }),
+    })),
+  },
+}));

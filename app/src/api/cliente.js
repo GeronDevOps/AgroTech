@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 /**
  * Cliente HTTP de la API REST de AgroTech.
  * - URL base desde EXPO_PUBLIC_API_URL (archivo .env de la app).
@@ -36,17 +38,19 @@ export async function solicitar(ruta, { metodo = 'GET', cuerpo, cabeceras = {}, 
   const controlador = new AbortController();
   const temporizador = setTimeout(() => controlador.abort(), tiempoEspera);
   const tokenEnviado = tokenActual;
+  const esFormulario = typeof FormData !== 'undefined' && cuerpo instanceof FormData;
   let respuesta;
   try {
     respuesta = await fetch(`${API_URL}/api/v1${ruta}`, {
       method: metodo,
       headers: {
         Accept: 'application/json',
-        ...(cuerpo ? { 'Content-Type': 'application/json' } : {}),
+        // Con FormData el motor de red pone el Content-Type multipart con su boundary.
+        ...(cuerpo && !esFormulario ? { 'Content-Type': 'application/json' } : {}),
         ...(tokenEnviado ? { Authorization: `Bearer ${tokenEnviado}` } : {}),
         ...cabeceras,
       },
-      body: cuerpo ? JSON.stringify(cuerpo) : undefined,
+      body: esFormulario ? cuerpo : cuerpo ? JSON.stringify(cuerpo) : undefined,
       signal: controlador.signal,
     });
   } catch {
@@ -71,9 +75,44 @@ export async function solicitar(ruta, { metodo = 'GET', cuerpo, cabeceras = {}, 
   return datos;
 }
 
+/** Arma la cadena de consulta omitiendo vacíos: { municipio: 'Ocaña', pagina: 2 } → "?municipio=Oca%C3%B1a&pagina=2" */
+function consulta(params = {}) {
+  const partes = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+  return partes.length ? `?${partes.join('&')}` : '';
+}
+
+/**
+ * Parte de archivo para FormData. En Android/iOS basta { uri, name, type };
+ * en la vista web hay que convertir la URI a Blob.
+ */
+async function archivo(uri, nombre) {
+  if (Platform.OS === 'web') {
+    const blob = await (await fetch(uri)).blob();
+    return [blob, nombre];
+  }
+  return [{ uri, name: nombre, type: 'image/jpeg' }];
+}
+
+const TIEMPO_SUBIDA_MS = 60000; // 300 KB por 3G rural
+
 export const api = {
   salud: () => solicitar('/salud', { tiempoEspera: 5000 }),
   registrar: (datos) => solicitar('/auth/registro', { metodo: 'POST', cuerpo: datos }),
   iniciarSesion: (identificador, contrasena) => solicitar('/auth/sesion', { metodo: 'POST', cuerpo: { identificador, contrasena } }),
   yo: () => solicitar('/auth/yo'),
+
+  // Productos (AGRO-6, AGRO-7, AGRO-18)
+  catalogo: (filtros) => solicitar(`/productos${consulta(filtros)}`),
+  producto: (id) => solicitar(`/productos/${id}`),
+  misProductos: () => solicitar('/productos/mios'),
+  editarProducto: (id, cambios) => solicitar(`/productos/${id}`, { metodo: 'PATCH', cuerpo: cambios }),
+  async publicarProducto(datos, { foto, miniatura }) {
+    const formulario = new FormData();
+    formulario.append('datos', JSON.stringify(datos));
+    formulario.append('foto', ...(await archivo(foto.uri, 'foto.jpg')));
+    formulario.append('miniatura', ...(await archivo(miniatura.uri, 'miniatura.jpg')));
+    return solicitar('/productos', { metodo: 'POST', cuerpo: formulario, tiempoEspera: TIEMPO_SUBIDA_MS });
+  },
 };
