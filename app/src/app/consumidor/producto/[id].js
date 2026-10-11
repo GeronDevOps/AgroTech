@@ -6,6 +6,7 @@ import { Aviso } from '../../../componentes/Aviso';
 import { Cantidad } from '../../../componentes/Cantidad';
 import { useCarrito } from '../../../carrito/CarritoContext';
 import { api } from '../../../api/cliente';
+import { guardarProductos, productoLocal } from '../../../local/cache';
 import { categoria as datosCategoria, unidad as datosUnidad } from '../../../datos/catalogo';
 import { formatoCantidad, formatoPesos, leerNumero } from '../../../utilidades/formato';
 import { mensajeDeError } from '../../../validacion/cuenta';
@@ -23,7 +24,14 @@ export default function DetalleProducto() {
   const [errorCantidad, setErrorCantidad] = useState(null);
 
   useEffect(() => {
-    api.producto(id).then((r) => setProducto(r.producto)).catch((err) => setError(mensajeDeError(err)));
+    // Sin señal se muestra la copia del teléfono (CU-17); con señal se actualiza esa copia.
+    api.producto(id)
+      .then((r) => { setProducto(r.producto); guardarProductos([r.producto]).catch(() => {}); })
+      .catch(async (err) => {
+        const local = err.codigo === 'SIN_CONEXION' ? await productoLocal(id).catch(() => null) : null;
+        if (local) setProducto(local);
+        else setError(mensajeDeError(err));
+      });
   }, [id]);
 
   if (!producto) {

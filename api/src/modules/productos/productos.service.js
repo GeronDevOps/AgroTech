@@ -78,22 +78,22 @@ function createProductosService({ productosRepository, almacenFotos, limitesFoto
     },
 
     /** RF-10a. 409 CONFLICTO_VERSION si otra edición ganó primero (CP-17); devuelve la versión vigente. */
-    async editar({ usuario, id, cambios, baseFotos }) {
+    async editar({ usuario, id, cambios, baseFotos, db }) {
       const c = validarEdicion(cambios);
-      const actual = esUuid(id) ? await productosRepository.buscarPorId(id) : null;
+      const actual = esUuid(id) ? await productosRepository.buscarPorId(id, db) : null;
       if (!actual || actual.id_productor !== usuario.id || actual.estado === 'INACTIVA') {
         throw errores.noEncontrado('La publicación no existe.');
       }
-      const ok = await productosRepository.actualizarPrecioStock(id, usuario.id, c);
+      const ok = await productosRepository.actualizarPrecioStock(id, usuario.id, c, db);
       if (!ok) {
-        const vigente = await productosRepository.buscarPorId(id);
+        const vigente = await productosRepository.buscarPorId(id, db);
         throw errores.conflicto(
           'CONFLICTO_VERSION',
           'La publicación cambió mientras la editaba. Revise los datos actuales.',
           { producto: publico(vigente, baseFotos) },
         );
       }
-      return { producto: publico(await productosRepository.buscarPorId(id), baseFotos) };
+      return { producto: publico(await productosRepository.buscarPorId(id, db), baseFotos) };
     },
 
     /** CU-03: página del catálogo con filtros. */

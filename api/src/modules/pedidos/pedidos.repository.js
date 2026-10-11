@@ -144,4 +144,4 @@ function createPedidosRepository({ pool }) {
   };
 }
 
-module.exports = { createPedidosRepository, ACTIVOS };
+module.exports = { createPedidosRepository, ACTIVOS, SELECT_PEDIDO };

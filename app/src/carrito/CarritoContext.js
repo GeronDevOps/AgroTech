@@ -1,5 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import * as Crypto from 'expo-crypto';
+import { guardarCarrito, leerCarrito } from '../local/cache';
+import { guardarMeta, leerMeta } from '../local/baseLocal';
 
 /**
  * Carrito del consumidor (clase Carrito «solo en la app», Entrega 3).
@@ -7,15 +9,40 @@ import * as Crypto from 'expo-crypto';
  * - agruparPorProductor(): un pedido por productor al confirmar (CU-04 A3).
  * - La clave de idempotencia se crea una vez por carrito y se conserva hasta que el pedido se confirma:
  *   si se pierde la respuesta, el reintento envía la misma clave y no duplica el pedido (RNF-10).
- * La persistencia en SQLite llega con el modo sin conexión (AGRO-10).
+ * - Persiste en la base local (carrito_local y meta_sync.clave_carrito): sobrevive al cierre de la app
+ *   y se puede armar sin señal (CU-04 sin conexión: "el carrito persiste"; AGRO-10).
  */
 const CarritoContext = createContext(null);
 
 export function CarritoProvider({ children }) {
   const [lineas, setLineas] = useState({}); // idProducto → { producto, cantidad }
+  const [cargado, setCargado] = useState(false);
   const clave = useRef(null);
 
-  const tocar = () => { clave.current = null; }; // cualquier cambio del carrito exige una clave nueva
+  // cualquier cambio del carrito exige una clave nueva
+  const tocar = () => {
+    clave.current = null;
+    guardarMeta('clave_carrito', null).catch(() => {});
+  };
+
+  // Al abrir: recupera el carrito y su clave guardados en el teléfono.
+  useEffect(() => {
+    let vigente = true;
+    Promise.all([leerCarrito(), leerMeta('clave_carrito')])
+      .then(([guardadas, k]) => {
+        if (!vigente) return;
+        setLineas((actual) => (Object.keys(actual).length ? actual : Object.fromEntries(guardadas.map((l) => [l.producto.id, l]))));
+        if (!clave.current) clave.current = k;
+      })
+      .catch(() => {})
+      .finally(() => { if (vigente) setCargado(true); });
+    return () => { vigente = false; };
+  }, []);
+
+  // Cada cambio se guarda en el teléfono.
+  useEffect(() => {
+    if (cargado) guardarCarrito(Object.values(lineas)).catch(() => {});
+  }, [lineas, cargado]);
 
   const agregar = useCallback((producto, cantidad) => {
     tocar();
@@ -58,7 +85,10 @@ export function CarritoProvider({ children }) {
   const vaciar = useCallback(() => { tocar(); setLineas({}); }, []);
 
   const claveIdempotencia = useCallback(() => {
-    if (!clave.current) clave.current = Crypto.randomUUID();
+    if (!clave.current) {
+      clave.current = Crypto.randomUUID();
+      guardarMeta('clave_carrito', clave.current).catch(() => {});
+    }
     return clave.current;
   }, []);
 

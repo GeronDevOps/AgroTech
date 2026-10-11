@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Aviso } from './Aviso';
+import { AvisoSinSenal } from './AvisoSinSenal';
+import { guardarPedidos, pedidosLocal } from '../local/cache';
 import { Opciones } from './Opciones';
 import { TarjetaPedido } from './TarjetaPedido';
 import { api } from '../api/cliente';
@@ -18,6 +20,7 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
   const [filtro, setFiltro] = useState('activos');
   const [pedidos, setPedidos] = useState(null);
   const [error, setError] = useState(null);
+  const [desdeCache, setDesdeCache] = useState(false);
   const [cargando, setCargando] = useState(false);
 
   const cargar = useCallback(async (f) => {
@@ -25,9 +28,18 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
     try {
       const r = await api.pedidos(f);
       setPedidos(r.pedidos);
+      guardarPedidos(r.pedidos).catch(() => {});
       setError(null);
+      setDesdeCache(false);
     } catch (err) {
-      setError(mensajeDeError(err));
+      // CU-15 / CU-17: sin señal se muestran los pedidos guardados en el teléfono.
+      if (err.codigo === 'SIN_CONEXION') {
+        setPedidos(await pedidosLocal({ soloActivos: f === 'activos' }).catch(() => []));
+        setDesdeCache(true);
+        setError(null);
+      } else {
+        setError(mensajeDeError(err));
+      }
     } finally {
       setCargando(false);
     }
@@ -45,6 +57,7 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
       ListHeaderComponent={(
         <>
           {encabezado}
+          {desdeCache ? <AvisoSinSenal /> : null}
           {error ? <Aviso tipo="sinSenal" mensaje={error} /> : null}
           <Opciones opciones={FILTROS} valor={filtro} onCambiar={setFiltro} />
         </>

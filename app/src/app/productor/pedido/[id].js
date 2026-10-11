@@ -6,6 +6,8 @@ import { CampoTexto } from '../../../componentes/CampoTexto';
 import { Aviso } from '../../../componentes/Aviso';
 import { DetallePedido } from '../../../componentes/DetallePedido';
 import { api } from '../../../api/cliente';
+import { guardarPedidos, pedidoLocal } from '../../../local/cache';
+import { AvisoSinSenal } from '../../../componentes/AvisoSinSenal';
 import { useConexion } from '../../../hooks/useConexion';
 import { mensajeDeError } from '../../../validacion/cuenta';
 import { colores, espacio, texto } from '../../../tema/tema';
@@ -21,6 +23,7 @@ export default function PedidoProductor() {
   const { id } = useLocalSearchParams();
   const { enLinea } = useConexion();
   const [pedido, setPedido] = useState(null);
+  const [desdeCache, setDesdeCache] = useState(false);
   const [aviso, setAviso] = useState(null);
   const [rechazando, setRechazando] = useState(false);
   const [motivo, setMotivo] = useState('');
@@ -29,9 +32,18 @@ export default function PedidoProductor() {
 
   const cargar = useCallback(async () => {
     try {
-      setPedido((await api.pedido(id)).pedido);
+      const { pedido: p } = await api.pedido(id);
+      setPedido(p);
+      setDesdeCache(false);
+      guardarPedidos([p]).catch(() => {});
     } catch (err) {
-      setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+      const local = err.codigo === 'SIN_CONEXION' ? await pedidoLocal(id).catch(() => null) : null;
+      if (local) {
+        setPedido(local);
+        setDesdeCache(true);
+      } else {
+        setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+      }
     }
   }, [id]);
   // Se consulta al abrir y cada vez que se vuelve a la pantalla (p. ej. al regresar de la página de pago).
@@ -69,7 +81,8 @@ export default function PedidoProductor() {
 
   return (
     <ScrollView style={styles.pantalla} contentContainerStyle={styles.contenido} refreshControl={<RefreshControl refreshing={false} onRefresh={cargar} />}>
-      {!enLinea ? <Aviso tipo="sinSenal" mensaje="Sin señal. Para cambiar el estado del pedido necesita conexión." /> : null}
+      {desdeCache ? <AvisoSinSenal detalle="Para cambiar el estado del pedido necesita conexión." /> : null}
+      {!enLinea && !desdeCache ? <Aviso tipo="sinSenal" mensaje="Sin señal. Para cambiar el estado del pedido necesita conexión." /> : null}
       {aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} testID="aviso-pedido" /> : null}
 
       {pedido.estado === 'PENDIENTE' ? (

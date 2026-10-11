@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api, alRechazarSesion, establecerToken } from '../api/cliente';
 import { borrarSesion, guardarSesion, leerSesion } from './almacen';
+import { borrarDatosLocales } from '../local/baseLocal';
 
 /**
  * Sesión del usuario (AGRO-5 · CU-01, CU-21).
@@ -22,6 +23,7 @@ export function SesionProvider({ children }) {
     establecerToken(null);
     setSesion(null);
     await borrarSesion();
+    await borrarDatosLocales().catch(() => {}); // copia local y cola del usuario que sale
   }, []);
 
   const abrir = useCallback(async ({ token, expiraEn, usuario }) => {

@@ -2,6 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ROLES, SesionProvider, useSesion } from '../sesion/SesionContext';
+import { SincronizacionProvider } from '../sync/SincronizacionContext';
 import { colores } from '../tema/tema';
 
 /**
@@ -12,8 +13,10 @@ import { colores } from '../tema/tema';
 export default function RootLayout() {
   return (
     <SesionProvider>
-      <StatusBar style="dark" />
-      <Navegador />
+      <SincronizacionProvider>
+        <StatusBar style="dark" />
+        <Navegador />
+      </SincronizacionProvider>
     </SesionProvider>
   );
 }
