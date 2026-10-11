@@ -35,6 +35,7 @@ function productosRoutes({ pool, tokens, almacenFotos }) {
   router.get('/:id', autenticar(tokens), controller.detalle);
   router.post('/', soloProductor, subida, controller.publicar);
   router.patch('/:id', soloProductor, controller.editar);
+  router.productosService = productosService; // lo reutiliza /sync/push (operaciones PRODUCTO.EDITAR)
   return router;
 }
 

@@ -26,8 +26,9 @@ function construirFiltro({ municipio, categoria, precioMin, precioMax }) {
 }
 
 function createProductosRepository({ pool }) {
-  async function buscarPorId(id) {
-    const { rows } = await pool.query(`${SELECT_PRODUCTO} WHERE p.id_producto = $1`, [id]);
+  // `db` permite ejecutar dentro de una transacción ajena (operaciones de la cola, /sync/push).
+  async function buscarPorId(id, db = pool) {
+    const { rows } = await db.query(`${SELECT_PRODUCTO} WHERE p.id_producto = $1`, [id]);
     return rows[0] || null;
   }
 
@@ -51,8 +52,8 @@ function createProductosRepository({ pool }) {
      * Cantidad 0 → AGOTADA (CU-10 A3); cantidad > 0 sobre una AGOTADA → ACTIVA.
      * El disparador fn_tocar_fila incrementa version y actualizado_en.
      */
-    async actualizarPrecioStock(id, idProductor, { precio, stock, version }) {
-      const { rowCount } = await pool.query(
+    async actualizarPrecioStock(id, idProductor, { precio, stock, version }, db = pool) {
+      const { rowCount } = await db.query(
         `UPDATE producto SET
            precio = COALESCE($3::numeric, precio),
            stock  = COALESCE($4::numeric, stock),
@@ -104,4 +105,4 @@ function createProductosRepository({ pool }) {
   };
 }
 
-module.exports = { createProductosRepository };
+module.exports = { createProductosRepository, SELECT_PRODUCTO };

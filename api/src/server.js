@@ -14,18 +14,24 @@ server.listen(config.port, () => {
 });
 
 // Tarea programada (CU-13 A3): cada hora cancela los pedidos pendientes sin respuesta y restituye el inventario.
-const { pedidosService } = app.locals.servicios;
-async function cancelarVencidos() {
+// Además depura los registros de operaciones de sincronización con más de 30 días (CU-17).
+const { pedidosService, syncService } = app.locals.servicios;
+async function tareasHorarias() {
   try {
     const ids = await pedidosService.cancelarVencidos({ horas: config.horasCancelacionAutomatica });
     if (ids.length) console.log(`[tareas] ${ids.length} pedido(s) cancelado(s) por falta de respuesta`);
   } catch (err) {
     console.error('[tareas] error al cancelar pedidos vencidos:', err.message);
   }
+  try {
+    await syncService.depurar({ dias: 30 });
+  } catch (err) {
+    console.error('[tareas] error al depurar operaciones de sincronización:', err.message);
+  }
 }
-const tarea = setInterval(cancelarVencidos, 60 * 60 * 1000);
+const tarea = setInterval(tareasHorarias, 60 * 60 * 1000);
 tarea.unref();
-setTimeout(cancelarVencidos, 60 * 1000).unref();
+setTimeout(tareasHorarias, 60 * 1000).unref();
 
 function shutdown(signal) {
   console.log(`[api] ${signal} recibido: cerrando conexiones…`);
