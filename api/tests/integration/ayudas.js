@@ -35,7 +35,27 @@ function crearAyudas(app) {
   const patch = (token, ruta, cuerpo) => request(app).patch(`/api/v1${ruta}`).set('Authorization', `Bearer ${token}`).send(cuerpo);
   const post = (token, ruta, cuerpo) => request(app).post(`/api/v1${ruta}`).set('Authorization', `Bearer ${token}`).send(cuerpo || {});
 
-  return { cuenta, producto, confirmar, get, patch, post };
+  /** Lleva un pedido hasta ENTREGADO como lo haría el productor (CU-13). */
+  async function entregar(tokenProductor, idPedido) {
+    let version;
+    ({ body: { pedido: { version } } } = await get(tokenProductor, `/pedidos/${idPedido}`));
+    for (const estado of ['ACEPTADO', 'EN_CAMINO', 'ENTREGADO']) {
+      const r = await patch(tokenProductor, `/pedidos/${idPedido}/estado`, { estado, version });
+      if (r.status !== 200) throw new Error(`entregar ${estado}: ${r.status} ${JSON.stringify(r.body)}`);
+      ({ version } = r.body.pedido);
+    }
+  }
+
+  /** Espera a que una condición asíncrona se cumpla (eventos que se procesan después de responder). */
+  async function hasta(condicion, ms = 3000) {
+    const fin = Date.now() + ms;
+    while (!(await condicion())) {
+      if (Date.now() > fin) throw new Error('La condición no se cumplió a tiempo');
+      await new Promise((r) => setTimeout(r, 20));
+    }
+  }
+
+  return { cuenta, producto, confirmar, get, patch, post, entregar, hasta };
 }
 
 /** Evento «transaction.updated» firmado como lo hace Wompi (docs.wompi.co → Eventos). */

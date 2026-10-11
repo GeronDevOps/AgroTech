@@ -25,6 +25,8 @@ function pedidoPublico(f) {
     consumidor: { id: f.id_consumidor, nombre: nombreCorto(f.c_nombres, f.c_apellidos) },
     productor: { id: f.id_productor, nombre: nombreCorto(f.p_nombres, f.p_apellidos), municipio: f.p_municipio },
     items: (f.items || []).map((i) => ({ ...i, cantidad: Number(i.cantidad), precioUnitario: Number(i.precioUnitario), subtotal: Number(i.subtotal) })),
+    // CU-06: calificación del pedido (solo lectura una vez hecha, A2).
+    calificacion: f.cal_puntuacion ? { puntuacion: f.cal_puntuacion, comentario: f.cal_comentario, fecha: f.cal_fecha } : null,
   };
 }
 
@@ -102,7 +104,8 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
     async listar({ usuario, estado }) {
       const soloActivos = (estado || 'activos') !== 'todos';
       const filas = await repo.delUsuario({ idUsuario: usuario.id, rol: usuario.rol, soloActivos });
-      return { pedidos: filas.map(pedidoPublico) };
+      const sinLeer = await repo.sinLeer(filas.map((f) => f.id_pedido), usuario.id);
+      return { pedidos: filas.map((f) => ({ ...pedidoPublico(f), mensajesSinLeer: sinLeer[f.id_pedido] || 0 })) };
     },
 
     /** Detalle para las partes del pedido: productos, historial de estados y último pago. */
@@ -111,9 +114,11 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
       if (!f || (f.id_consumidor !== usuario.id && f.id_productor !== usuario.id)) throw errores.noEncontrado('El pedido no existe.');
       const historial = (await repo.historial(id)).map((h) => ({ estadoAnterior: h.estado_anterior, estadoNuevo: h.estado_nuevo, fecha: h.fecha }));
       const pago = await repo.ultimoPago(id);
+      const sinLeer = await repo.sinLeer([id], usuario.id);
       return {
         pedido: {
           ...pedidoPublico(f),
+          mensajesSinLeer: sinLeer[id] || 0,
           historial,
           pago: pago ? { estado: pago.estado, medio: pago.medio, referencia: pago.referencia, fecha: pago.creado_en } : null,
         },

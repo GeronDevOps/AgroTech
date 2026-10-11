@@ -15,9 +15,9 @@ const errorPublico = (err) => ({ codigo: err.codigo, mensaje: err.message, ...(e
 /**
  * Manejadores de las operaciones que la cola del teléfono envía por /sync/push (CU-17 paso 3).
  * CU-02 (publicar con foto) no pasa por aquí: va a POST /productos, idempotente por el id del teléfono.
- * Fase 6 agrega MENSAJE.CREAR (CU-05) y CALIFICACION.CREAR (CU-06).
+ * `alConfirmar` (opcional): avisos en tiempo real que salen solo después de confirmar la transacción.
  */
-function crearManejadores({ productosService }) {
+function crearManejadores({ productosService, mensajesService, calificacionesService }) {
   return {
     'PRODUCTO.EDITAR': {
       rol: 'PRODUCTOR',
@@ -27,14 +27,31 @@ function crearManejadores({ productosService }) {
         return { producto };
       },
     },
+    // CU-05 A1: mensaje escrito sin señal. idEntidad = id del mensaje generado en el teléfono.
+    'MENSAJE.CREAR': {
+      ejecutar: async ({ db, usuario, op }) => {
+        if (!op.idEntidad || !op.datos) throw errores.datosInvalidos('MENSAJE.CREAR requiere idEntidad y datos.');
+        const r = await mensajesService.enviar({ usuario, idPedido: op.datos.idPedido, body: { id: op.idEntidad, contenido: op.datos.contenido }, db, diferir: true });
+        return { mensaje: r.mensaje, alConfirmar: r.alConfirmar };
+      },
+    },
+    // CU-06 A3: calificación guardada sin señal. idEntidad = id del pedido.
+    'CALIFICACION.CREAR': {
+      rol: 'CONSUMIDOR',
+      ejecutar: async ({ db, usuario, op }) => {
+        if (!op.idEntidad || !op.datos) throw errores.datosInvalidos('CALIFICACION.CREAR requiere idEntidad y datos.');
+        const r = await calificacionesService.calificar({ usuario, idPedido: op.idEntidad, body: op.datos, db, diferir: true });
+        return { calificacion: r.calificacion, reputacion: r.reputacion, alConfirmar: r.alConfirmar };
+      },
+    },
   };
 }
 
 /**
  * Capa de negocio de CU-17 / RF-17: aplica la cola del teléfono y entrega los cambios desde la última sincronización.
  */
-function createSyncService({ pool, syncRepository: repo, productosService, almacenFotos }) {
-  const manejadores = crearManejadores({ productosService });
+function createSyncService({ pool, syncRepository: repo, productosService, mensajesService, calificacionesService, almacenFotos }) {
+  const manejadores = crearManejadores({ productosService, mensajesService, calificacionesService });
 
   /**
    * Aplica una operación en su propia transacción.
@@ -44,7 +61,7 @@ function createSyncService({ pool, syncRepository: repo, productosService, almac
    */
   async function aplicar({ usuario, op, baseFotos }) {
     try {
-      return await transaccion(pool, async (db) => {
+      const { alConfirmar, ...resultado } = await transaccion(pool, async (db) => {
         await repo.bloquearOperacion(db, op.idOperacion);
         const previa = await repo.buscarOperacion(db, op.idOperacion);
         if (previa) {
@@ -62,9 +79,9 @@ function createSyncService({ pool, syncRepository: repo, productosService, almac
           const manejador = manejadores[op.tipo];
           if (!manejador) throw errores.datosInvalidos(`Operación no soportada: ${op.tipo || '(vacía)'}.`);
           if (manejador.rol && manejador.rol !== usuario.rol) throw errores.sinPermiso('Su rol no puede hacer esta operación.');
-          const respuesta = await manejador.ejecutar({ db, usuario, op, baseFotos });
+          const { alConfirmar, ...respuesta } = await manejador.ejecutar({ db, usuario, op, baseFotos });
           await repo.registrarOperacion(db, { ...registro, resultado: 'PUBLICADO', respuesta });
-          return { idOperacion: op.idOperacion, resultado: 'PUBLICADO', ...respuesta };
+          return { idOperacion: op.idOperacion, resultado: 'PUBLICADO', ...respuesta, alConfirmar };
         } catch (err) {
           if (!(err instanceof HttpError) || err.status >= 500) throw err;
           await db.query('ROLLBACK TO SAVEPOINT operacion');
@@ -73,6 +90,8 @@ function createSyncService({ pool, syncRepository: repo, productosService, almac
           return { idOperacion: op.idOperacion, resultado: 'CON_ERROR', error };
         }
       });
+      if (alConfirmar) alConfirmar();
+      return resultado;
     } catch (err) {
       console.error(`[sync] operación ${op.idOperacion} no aplicada:`, err.message);
       return { idOperacion: op.idOperacion, resultado: 'REINTENTAR', error: { codigo: 'ERROR_TEMPORAL', mensaje: 'No se pudo aplicar ahora; se reintentará.' } };
