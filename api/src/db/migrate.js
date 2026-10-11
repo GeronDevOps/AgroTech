@@ -61,7 +61,7 @@ async function migrate({ dir = config.migrationsDir, log = console.log } = {}) {
         done.push(m.name);
       } catch (err) {
         await client.query('ROLLBACK');
-        throw new Error(`Falló ${m.name}: ${err.message}`);
+        throw new Error(`Falló ${m.name}: ${err.message}`, { cause: err });
       }
     }
     log(done.length ? `[migrate] ${done.length} migración(es) aplicada(s).` : '[migrate] la base de datos ya está al día.');
