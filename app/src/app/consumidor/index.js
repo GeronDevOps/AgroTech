@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BotonGrande } from '../../componentes/BotonGrande';
 import { CampoTexto } from '../../componentes/CampoTexto';
 import { Aviso } from '../../componentes/Aviso';
+import { AvisoSinSenal } from '../../componentes/AvisoSinSenal';
 import { HojaSeleccion } from '../../componentes/HojaSeleccion';
 import { TarjetaProducto } from '../../componentes/TarjetaProducto';
 import { api } from '../../api/cliente';
+import { catalogoLocal, guardarProductos } from '../../local/cache';
+import { useConexion } from '../../hooks/useConexion';
 import { CATEGORIAS, categoria as datosCategoria } from '../../datos/catalogo';
 import { MUNICIPIOS } from '../../datos/municipios';
 import { useSesion } from '../../sesion/SesionContext';
@@ -22,12 +25,10 @@ const SIN_FILTROS = { municipio: null, categoria: null, precioMin: null, precioM
 const OPCIONES_MUNICIPIO = [{ valor: null, texto: 'Todos los municipios' }, ...MUNICIPIOS.map((m) => ({ valor: m, texto: m }))];
 const OPCIONES_CATEGORIA = [{ valor: null, texto: 'Todas las categorías' }, ...CATEGORIAS.map((c) => ({ valor: c.codigo, texto: c.nombre, icono: c.icono }))];
 
-const hora = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-
 /**
  * CU-03 · Catálogo con filtros (wireframe 3).
  * Paginado de a 20; filtros por municipio, categoría y precio; sin resultados ofrece limpiar (A1);
- * sin señal conserva lo último cargado con su hora (A2; la copia persistente llega con AGRO-10).
+ * sin señal (A2 · CU-17) consulta la copia del teléfono con los mismos filtros y muestra la fecha de sincronización.
  */
 export default function Catalogo() {
   const router = useRouter();
@@ -40,7 +41,10 @@ export default function Catalogo() {
   const [hayMas, setHayMas] = useState(false);
   const [total, setTotal] = useState(null);
   const [error, setError] = useState(null);
-  const [cargadoEn, setCargadoEn] = useState(null);
+  const [desdeCache, setDesdeCache] = useState(false);
+  const { enLinea } = useConexion();
+  const enLineaRef = useRef(enLinea);
+  useEffect(() => { enLineaRef.current = enLinea; }, [enLinea]);
   const [hoja, setHoja] = useState(null); // 'municipio' | 'categoria' | 'precio'
 
   const { filtros, pagina } = solicitud;
@@ -49,14 +53,21 @@ export default function Catalogo() {
 
   useEffect(() => {
     let vigente = true;
-    api.catalogo({ ...solicitud.filtros, pagina: solicitud.pagina, tamano: TAMANO_PAGINA })
+    const q = { ...solicitud.filtros, pagina: solicitud.pagina, tamano: TAMANO_PAGINA };
+    const local = () => catalogoLocal(q).then((r) => ({ ...r, local: true }));
+    const consulta = enLineaRef.current
+      ? api.catalogo(q)
+        .then((r) => { guardarProductos(r.productos).catch(() => {}); return { ...r, local: false }; })
+        .catch((err) => (err.codigo === 'SIN_CONEXION' ? local() : Promise.reject(err)))
+      : local();
+    consulta
       .then((r) => {
         if (!vigente) return;
         setProductos((prev) => (solicitud.pagina === 1 ? r.productos : [...prev, ...r.productos]));
         setHayMas(r.hayMas);
         setTotal(r.total);
         setError(null);
-        setCargadoEn(new Date());
+        setDesdeCache(r.local);
       })
       .catch((err) => { if (vigente) setError(err); })
       .finally(() => { if (vigente) setRespondida(solicitud.n); });
@@ -73,11 +84,7 @@ export default function Catalogo() {
     ? `${filtros.precioMin !== null ? formatoPesos(filtros.precioMin) : '$ 0'} – ${filtros.precioMax !== null ? formatoPesos(filtros.precioMax) : 'más'}`
     : 'Precio';
 
-  const avisoError = error ? (
-    error.codigo === 'SIN_CONEXION'
-      ? <Aviso tipo="sinSenal" mensaje={cargadoEn ? `Sin señal. Muestra lo cargado a las ${hora(cargadoEn)}. La compra se habilita con red.` : 'Sin señal. Conéctese para ver el catálogo.'} />
-      : <Aviso mensaje={mensajeDeError(error)} />
-  ) : null;
+  const avisoError = error ? <Aviso mensaje={mensajeDeError(error)} /> : null;
 
   return (
     <View style={styles.pantalla}>
@@ -97,6 +104,7 @@ export default function Catalogo() {
         refreshControl={<RefreshControl refreshing={cargando && pagina === 1 && productos.length > 0} onRefresh={() => pedir(filtros, 1)} colors={[colores.primario]} />}
         ListHeaderComponent={(
           <>
+            {desdeCache ? <AvisoSinSenal detalle="Puede agregar al carrito; para comprar necesita conexión." /> : null}
             {avisoError}
             {total !== null && productos.length ? <Text style={styles.conteo}>{total} {total === 1 ? 'producto' : 'productos'}</Text> : null}
           </>
@@ -107,7 +115,9 @@ export default function Catalogo() {
         ListEmptyComponent={!cargando && !error ? (
           <View style={styles.vacio} testID="catalogo-vacio">
             <Text style={styles.vacioIcono} importantForAccessibility="no">🔎</Text>
-            <Text style={styles.vacioTexto}>{hayFiltros ? 'No hay productos con esos filtros.' : 'Todavía no hay productos publicados.'}</Text>
+            <Text style={styles.vacioTexto}>
+              {hayFiltros ? 'No hay productos con esos filtros.' : desdeCache ? 'Aún no hay productos guardados en el teléfono. Conéctese una vez para descargar el catálogo.' : 'Todavía no hay productos publicados.'}
+            </Text>
             {hayFiltros ? <BotonGrande titulo="Limpiar filtros" variante="secundario" onPress={() => pedir(SIN_FILTROS, 1)} /> : null}
           </View>
         ) : null}

@@ -64,7 +64,7 @@ describe('CU-02 · Publicar producto (AGRO-6)', () => {
     expect(datosEnviados(app.llamadas)).toHaveLength(0);
   });
 
-  test('A3: si falla la red conserva los datos y el reintento usa el mismo id (sin duplicar)', async () => {
+  test('A3: si la señal se cae al enviar, queda en la cola y el reintento usa el mismo id (sin duplicar)', async () => {
     let intento = 0;
     const app = await abrirComo(usuarioRosa, '/productor/publicar', {
       'POST /productos': () => (++intento === 1 ? 'SIN_RED' : [201, { producto: productoApi({ id: ID_FIJO }) }]),
@@ -72,14 +72,14 @@ describe('CU-02 · Publicar producto (AGRO-6)', () => {
     });
     await llenarPublicacion();
     await pulsar('Publicar');
-    expect(await screen.findByTestId('error-publicar')).toHaveTextContent(/siguen aquí/);
-    expect(screen.getByLabelText('Precio por bulto').props.value).toBe('85000');
-
-    await pulsar('Publicar');
     await waitFor(() => expect(app.getPathname()).toBe('/productor/productos'));
+    expect(await screen.findByTestId('aviso-en-cola')).toHaveTextContent(/guardado en el teléfono/);
+
+    // El motor de sincronización la reenvía sola con el mismo id.
+    await waitFor(() => expect(datosEnviados(app.llamadas)).toHaveLength(2));
     const envios = datosEnviados(app.llamadas);
-    expect(envios).toHaveLength(2);
-    expect(envios[0].id).toBe(envios[1].id);
+    expect(envios[0].id).toBe(ID_FIJO);
+    expect(envios[1].id).toBe(ID_FIJO);
   });
 });
 
@@ -159,8 +159,9 @@ describe('CU-03 · Catálogo con filtros (AGRO-7)', () => {
     expect(screen.getByTestId('aviso-agotado')).toBeTruthy();
   });
 
-  test('A2: sin señal lo informa en lugar de quedarse en blanco', async () => {
+  test('A2: sin señal y sin copia en el teléfono lo informa en lugar de quedarse en blanco', async () => {
     await abrirComo(usuarioAndres, '/consumidor', { 'GET /productos?pagina=1&tamano=20': () => 'SIN_RED' });
-    expect(await screen.findByText(/Sin señal\. Conéctese para ver el catálogo/)).toBeTruthy();
+    expect(await screen.findByTestId('aviso-sin-senal')).toHaveTextContent(/sincronizado nunca/);
+    expect(await screen.findByText(/Aún no hay productos guardados en el teléfono/)).toBeTruthy();
   });
 });

@@ -1,18 +1,25 @@
 /**
  * API simulada para las pruebas: responde según "MÉTODO /ruta".
- * Cada manejador recibe { cuerpo, cabeceras } y devuelve [status, json].
+ * Cada manejador recibe { cuerpo, cabeceras, consulta } y devuelve [status, json] o 'SIN_RED'.
+ * Con global.__red desconectado (modo avión) ninguna petición llega.
  */
 export function apiFalsa(manejadores = {}) {
   const llamadas = [];
   global.fetch = jest.fn(async (url, opciones = {}) => {
+    // Modo avión simulado: sin red no sale ninguna petición.
+    if (global.__red && !global.__red.conectado()) throw new TypeError('Network request failed');
     const ruta = url.replace(/^.*\/api\/v1/, '');
-    const clave = `${opciones.method || 'GET'} ${ruta}`;
+    const metodo = opciones.method || 'GET';
+    const clave = `${metodo} ${ruta}`;
+    const [rutaSinConsulta, textoConsulta = ''] = ruta.split('?');
+    const consulta = Object.fromEntries(new URLSearchParams(textoConsulta));
     const cuerpo = typeof opciones.body === 'string' ? JSON.parse(opciones.body) : leerFormulario(opciones.body);
-    llamadas.push({ clave, cuerpo, cabeceras: opciones.headers || {} });
-    const manejador = manejadores[clave]
+    llamadas.push({ clave, cuerpo, cabeceras: opciones.headers || {}, consulta });
+    // Primero la ruta exacta (con su consulta); luego la ruta sin consulta (p. ej. 'GET /sync/pull').
+    const manejador = manejadores[clave] || manejadores[`${metodo} ${rutaSinConsulta}`]
       || (clave === 'GET /salud' ? () => [200, { estado: 'ok', baseDeDatos: { migracion: '001' } }] : null);
     if (!manejador) return respuesta(404, { error: { codigo: 'NO_ENCONTRADO', mensaje: clave } });
-    const r = await manejador({ cuerpo, cabeceras: opciones.headers || {} });
+    const r = await manejador({ cuerpo, cabeceras: opciones.headers || {}, consulta });
     if (r === 'SIN_RED') throw new TypeError('Network request failed');
     return respuesta(r[0], r[1]);
   });

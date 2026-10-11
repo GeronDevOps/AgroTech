@@ -24,6 +24,8 @@ Autenticación: cabecera `Authorization: Bearer <token>` en las rutas marcadas c
 | `PATCH /pedidos/{id}/pago` | JWT · consumidor del pedido | CU-22 A1 | 4 | Implementada |
 | `POST /pagos/wompi/eventos` | Firma Wompi (checksum) | CU-22 · RF-21 | 4 | Implementada ([ADR-001](decisiones/ADR-001-pasarela-de-pago.md)) |
 | `GET /pagos/retorno` | Pública | CU-22 | 4 | Implementada |
+| `POST /sync/push` | JWT | CU-17 · RF-17 | 5 | Implementada |
+| `GET /sync/pull` | JWT | CU-17 · RF-17 | 5 | Implementada |
 
 ---
 
@@ -235,4 +237,47 @@ Evento `transaction.updated` de Wompi. Se verifica `checksum = SHA256(valores de
 ## GET /pagos/retorno
 
 `302` hacia `WOMPI_RETORNO_APP` (`agrotech://pago?id=<transacción>`): devuelve al usuario a la app tras el checkout.
+
+---
+
+## Sincronización sin conexión (CU-17 · RF-17)
+
+La app guarda una copia local (SQLite) y una cola de operaciones. Al volver la señal: 1) envía la cola en orden cronológico,
+2) descarga lo cambiado desde su última marca. Las publicaciones con foto (CU-02) **no** pasan por `/sync/push`:
+van a `POST /productos`, que ya es idempotente por el `id` generado en el teléfono.
+
+## POST /sync/push
+
+Cuerpo: `{ "operaciones": [{ "idOperacion": uuid, "tipo": "PRODUCTO.EDITAR", "idEntidad": uuid, "datos": {…}, "creadoEn": ISO }] }` (1–50).
+
+| `tipo` | Rol | `datos` | Equivale a |
+|---|---|---|---|
+| `PRODUCTO.EDITAR` | Productor | `{ precio?, stock?, version }` | `PATCH /productos/{id}` |
+| `MENSAJE.CREAR`, `CALIFICACION.CREAR` | — | — | Fase 6 |
+
+Respuesta `200 { resultados: [{ idOperacion, resultado, producto?, error? }] }`, en el mismo orden:
+
+| `resultado` | Significado | La app |
+|---|---|---|
+| `PUBLICADO` | Aplicada; trae la entidad vigente | Sale de la cola y actualiza la copia |
+| `YA_APLICADA` | Reenvío de una operación ya aplicada (se perdió la respuesta) | Igual que `PUBLICADO` |
+| `CON_ERROR` | Rechazo de negocio (`DATOS_INVALIDOS`, `NO_ENCONTRADO`, `SIN_PERMISO`, `CONFLICTO_VERSION` con `detalles.producto`) | Queda "Con error"; en conflicto prevalece el servidor (A2) |
+| `REINTENTAR` | Error temporal del servidor | Vuelve a "Pendiente" |
+
+- Cada operación corre en su propia transacción con bloqueo por `idOperacion`; el resultado se registra en `operacion_sync` (depuración a los 30 días).
+- `400 DATOS_INVALIDOS` solo si el lote está mal formado (vacío, > 50, `idOperacion` inválido o repetido).
+
+## GET /sync/pull
+
+Parámetros: `desde` (ISO; marca anterior) y `despuesDe` (cursor). Respuesta:
+
+```json
+{ "servidorEn": "ISO", "completa": false, "productos": [...], "hayMas": false,
+  "siguiente": null, "retirados": ["uuid"], "pedidos": [...] }
+```
+
+- Sin `desde`: copia completa (`completa: true`) del catálogo visible + publicaciones propias + últimos 100 pedidos.
+- Con `desde`: lo cambiado después de `desde − 2 min` (solapamiento para transacciones que confirmaron tarde); `retirados` = ids que ya no deben estar en la copia.
+- Productos paginados de a 500 por cursor exacto `(actualizado_en, id)` con microsegundos (`siguiente: { desde, despuesDe }`); pedidos y retirados solo en la primera página.
+- La app guarda `servidorEn` de la primera página como nueva marca.
 

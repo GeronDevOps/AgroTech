@@ -7,8 +7,23 @@ const ESTADOS = {
   ACTIVA: { texto: 'Activa', fondo: colores.enLinea, color: colores.enLineaTexto },
   AGOTADA: { texto: 'Agotada', fondo: '#FFEBEE', color: '#8E0000' },
   PAUSADA: { texto: 'Pausada', fondo: colores.superficie, color: colores.textoSecundario },
-  PENDIENTE: { texto: 'Pendiente por sincronizar', fondo: colores.sinSenal, color: colores.sinSenalTexto },
 };
+
+/** Estado en la cola del teléfono (CU-17): siempre con ícono y texto, nunca solo color (RNF-02). */
+export const ESTADOS_SYNC = {
+  PENDIENTE: { icono: '⏳', texto: 'Pendiente por sincronizar', fondo: colores.sinSenal, color: colores.sinSenalTexto },
+  ENVIANDO: { icono: '⟳', texto: 'Enviando…', fondo: '#E3F2FD', color: '#0D47A1' },
+  CON_ERROR: { icono: '⚠', texto: 'Con error', fondo: '#FFEBEE', color: '#8E0000' },
+};
+
+export function EstadoSync({ sync }) {
+  const e = ESTADOS_SYNC[sync.estado] || ESTADOS_SYNC.PENDIENTE;
+  return (
+    <View style={[styles.estado, { backgroundColor: e.fondo }]} testID="estado-sync">
+      <Text style={[styles.estadoTexto, { color: e.color }]}>{e.icono} {e.texto}</Text>
+    </View>
+  );
+}
 
 export function EstadoProducto({ estado }) {
   const e = ESTADOS[estado] || ESTADOS.PAUSADA;
@@ -35,7 +50,8 @@ export function FotoProducto({ uri, codigoCategoria, style }) {
  */
 export function TarjetaProducto({ producto, onPress, mostrarEstado = false, compacta = false }) {
   const u = unidad(producto.unidad);
-  const etiqueta = `${producto.nombre}, ${formatoPesos(producto.precio)} por ${u.singular}, ${formatoCantidad(producto.stock)} disponibles, ${producto.municipio}`;
+  const sync = producto.sync ? `, ${(ESTADOS_SYNC[producto.sync.estado] || ESTADOS_SYNC.PENDIENTE).texto}` : '';
+  const etiqueta = `${producto.nombre}, ${formatoPesos(producto.precio)} por ${u.singular}, ${formatoCantidad(producto.stock)} disponibles, ${producto.municipio}${sync}`;
   return (
     <Pressable
       accessibilityRole="button"
@@ -49,7 +65,11 @@ export function TarjetaProducto({ producto, onPress, mostrarEstado = false, comp
         <Text style={styles.precio}>{formatoPesos(producto.precio)}<Text style={styles.porUnidad}> / {u.nombre}</Text></Text>
         <Text style={styles.detalle}>{formatoCantidad(producto.stock)} {producto.stock === 1 ? u.singular : u.plural}</Text>
         <Text style={styles.detalle} numberOfLines={1}>📍 {producto.municipio}</Text>
-        {mostrarEstado ? <EstadoProducto estado={producto.estado} /> : null}
+        {mostrarEstado && !(producto.sync && producto.sync.nueva) ? <EstadoProducto estado={producto.estado} /> : null}
+        {mostrarEstado && producto.sync ? <EstadoSync sync={producto.sync} /> : null}
+        {mostrarEstado && producto.sync && producto.sync.error ? (
+          <Text style={styles.errorSync} numberOfLines={3}>{producto.sync.error.mensaje}</Text>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -74,4 +94,5 @@ const styles = StyleSheet.create({
   detalle: { fontSize: texto.pequeno, color: colores.textoSecundario },
   estado: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: espacio.s, paddingVertical: 2, marginTop: espacio.xs },
   estadoTexto: { fontSize: texto.pequeno, fontWeight: '700' },
+  errorSync: { fontSize: texto.pequeno, color: '#8E0000', marginTop: 2 },
 });

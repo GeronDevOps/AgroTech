@@ -115,6 +115,9 @@ export const api = {
   cambiarEstadoPedido: (id, cuerpo) => solicitar(`/pedidos/${id}/estado`, { metodo: 'PATCH', cuerpo }),
   iniciarPago: (id) => solicitar(`/pedidos/${id}/pago`, { metodo: 'POST' }),
   cambiarAContraEntrega: (id) => solicitar(`/pedidos/${id}/pago`, { metodo: 'PATCH', cuerpo: { metodoPago: 'CONTRA_ENTREGA' } }),
+  // Sincronización sin conexión (AGRO-10)
+  syncPush: (operaciones) => solicitar('/sync/push', { metodo: 'POST', cuerpo: { operaciones }, tiempoEspera: 30000 }),
+  syncPull: (params = {}) => solicitar(`/sync/pull${consulta(params)}`, { tiempoEspera: 30000 }),
   async publicarProducto(datos, { foto, miniatura }) {
     const formulario = new FormData();
     formulario.append('datos', JSON.stringify(datos));

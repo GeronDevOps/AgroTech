@@ -6,6 +6,8 @@ import { BotonGrande } from '../../../componentes/BotonGrande';
 import { Aviso } from '../../../componentes/Aviso';
 import { DetallePedido } from '../../../componentes/DetallePedido';
 import { api } from '../../../api/cliente';
+import { guardarPedidos, pedidoLocal } from '../../../local/cache';
+import { AvisoSinSenal } from '../../../componentes/AvisoSinSenal';
 import { useConexion } from '../../../hooks/useConexion';
 import { mensajeDeError } from '../../../validacion/cuenta';
 import { colores, espacio, texto } from '../../../tema/tema';
@@ -21,6 +23,7 @@ export default function PedidoConsumidor() {
   const { id, nuevo } = useLocalSearchParams();
   const { enLinea } = useConexion();
   const [pedido, setPedido] = useState(null);
+  const [desdeCache, setDesdeCache] = useState(false);
   const [aviso, setAviso] = useState(nuevo ? { tipo: 'info', mensaje: '✓ Pedido confirmado. El productor ya recibió el aviso.' } : null);
   const [ocupado, setOcupado] = useState(false);
 
@@ -28,9 +31,17 @@ export default function PedidoConsumidor() {
     try {
       const r = await api.pedido(id);
       setPedido(r.pedido);
+      setDesdeCache(false);
+      guardarPedidos([r.pedido]).catch(() => {});
       return r.pedido;
     } catch (err) {
-      setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+      const local = err.codigo === 'SIN_CONEXION' ? await pedidoLocal(id).catch(() => null) : null;
+      if (local) {
+        setPedido(local);
+        setDesdeCache(true);
+      } else {
+        setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+      }
       return null;
     }
   }, [id]);
@@ -81,6 +92,7 @@ export default function PedidoConsumidor() {
 
   return (
     <ScrollView style={styles.pantalla} contentContainerStyle={styles.contenido} refreshControl={<RefreshControl refreshing={false} onRefresh={cargar} />}>
+      {desdeCache ? <AvisoSinSenal detalle="El pago en línea necesita conexión." /> : null}
       {aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} testID="aviso-pedido" /> : null}
       {puedePagar ? (
         <View style={styles.pago}>

@@ -13,6 +13,7 @@ import { CATEGORIAS, PRODUCTOS_FRECUENTES, UNIDADES, unidad as datosUnidad } fro
 import { ErrorFoto, obtenerFoto } from '../../fotos/prepararFoto';
 import { useSesion } from '../../sesion/SesionContext';
 import { useConexion } from '../../hooks/useConexion';
+import { useSincronizacion } from '../../sync/SincronizacionContext';
 import { formatoPesos, leerNumero } from '../../utilidades/formato';
 import { validarPublicacion } from '../../validacion/producto';
 import { mensajeDeError } from '../../validacion/cuenta';
@@ -22,11 +23,13 @@ import { colores, espacio, texto } from '../../tema/tema';
  * CU-02 · Publicar un producto (wireframe 2, a un toque desde el inicio).
  * Foto → qué vende → cuánto y cómo → precio → Publicar. El municipio sale del perfil.
  * El id se genera en el teléfono una sola vez: si la red falla y se reintenta, la API no duplica (A3).
+ * Sin señal (CU-17, CA-04) la publicación queda en la cola del teléfono y se publica sola al volver la red.
  */
 export default function Publicar() {
   const router = useRouter();
   const { usuario } = useSesion();
   const { enLinea } = useConexion();
+  const sync = useSincronizacion();
   const scrollRef = useRef(null);
   const idRef = useRef(Crypto.randomUUID());
 
@@ -76,23 +79,41 @@ export default function Publicar() {
       return;
     }
     setEnviando(true);
+    const datos = {
+      id: idRef.current,
+      nombre: form.nombre.trim(),
+      categoria: form.categoria,
+      unidad: form.unidad,
+      stock: leerNumero(form.cantidad, { decimales: true }),
+      precio: precioNum,
+      descripcion: form.descripcion.trim() || undefined,
+      municipio: form.municipio,
+    };
+    const guardarEnCola = async () => {
+      await sync.publicarDespues(datos, fotos);
+      router.replace({ pathname: '/productor/productos', params: { enCola: datos.nombre } });
+    };
     try {
-      await api.publicarProducto({
-        id: idRef.current,
-        nombre: form.nombre.trim(),
-        categoria: form.categoria,
-        unidad: form.unidad,
-        stock: leerNumero(form.cantidad, { decimales: true }),
-        precio: precioNum,
-        descripcion: form.descripcion.trim() || undefined,
-        municipio: form.municipio,
-      }, fotos);
-      router.replace({ pathname: '/productor/productos', params: { publicado: form.nombre.trim() } });
+      if (!enLinea) {
+        await guardarEnCola();
+        return;
+      }
+      await api.publicarProducto(datos, fotos);
+      router.replace({ pathname: '/productor/productos', params: { publicado: datos.nombre } });
     } catch (err) {
+      if (err.codigo === 'SIN_CONEXION') {
+        // La señal se cayó durante el envío: el mismo id va a la cola (la API no duplica si sí llegó).
+        try {
+          await guardarEnCola();
+          return;
+        } catch {
+          // no se pudo guardar en el teléfono: se informa abajo
+        }
+      }
       if (err.codigo === 'DATOS_INVALIDOS' && err.detalles && err.detalles.campos) setErrores(err.detalles.campos);
       if (err.codigo === 'FOTO_MUY_GRANDE') setErrores({ foto: 'La foto quedó muy pesada. Tome otra con menos detalle.' });
       setErrorGeneral(err.codigo === 'SIN_CONEXION'
-        ? 'No se pudo enviar por falta de señal. Sus datos y la foto siguen aquí: pulse Publicar de nuevo cuando tenga conexión.'
+        ? 'No se pudo enviar ni guardar en el teléfono. Sus datos y la foto siguen aquí: pulse Publicar de nuevo.'
         : mensajeDeError(err));
       setEnviando(false);
       scrollRef.current && scrollRef.current.scrollTo({ y: 0, animated: true });
@@ -102,7 +123,7 @@ export default function Publicar() {
   return (
     <KeyboardAvoidingView style={styles.pantalla} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
-        {!enLinea ? <Aviso tipo="sinSenal" mensaje="Sin señal. Puede llenar todo; para publicar necesita conexión." /> : null}
+        {!enLinea ? <Aviso tipo="sinSenal" mensaje="Sin señal. Puede publicar igual: queda guardado en el teléfono y se publica solo cuando vuelva la señal." /> : null}
         {errorGeneral ? <Aviso mensaje={errorGeneral} testID="error-publicar" /> : null}
 
         <Text style={styles.seccion}>1. Foto</Text>
@@ -164,7 +185,7 @@ export default function Publicar() {
           </View>
         )}
 
-        <BotonGrande titulo={enviando ? 'Publicando…' : 'Publicar'} onPress={publicar} deshabilitado={enviando || !enLinea} />
+        <BotonGrande titulo={enviando ? 'Publicando…' : 'Publicar'} onPress={publicar} deshabilitado={enviando} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

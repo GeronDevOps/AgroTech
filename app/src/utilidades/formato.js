@@ -22,3 +22,14 @@ export function leerNumero(texto, { decimales = false } = {}) {
   if (!decimales) return Number(limpio.replace(/\./g, ''));
   return Number(limpio.replace(/\./g, '').replace(',', '.'));
 }
+
+const dosDigitos = (n) => String(n).padStart(2, '0');
+
+/** Fecha de la última sincronización (CU-17 paso 1): "hoy 10:42", "11/10 10:42" o "nunca". */
+export function textoSincronizacion(iso, ahora = new Date()) {
+  if (!iso) return 'nunca';
+  const d = new Date(iso);
+  const hora = `${dosDigitos(d.getHours())}:${dosDigitos(d.getMinutes())}`;
+  const mismoDia = d.getFullYear() === ahora.getFullYear() && d.getMonth() === ahora.getMonth() && d.getDate() === ahora.getDate();
+  return mismoDia ? `hoy ${hora}` : `${dosDigitos(d.getDate())}/${dosDigitos(d.getMonth() + 1)} ${hora}`;
+}

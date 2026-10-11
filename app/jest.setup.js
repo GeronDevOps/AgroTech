@@ -1,5 +1,23 @@
-// Simulación del módulo nativo de red para las pruebas (no existe fuera del teléfono).
-jest.mock('@react-native-community/netinfo', () => require('@react-native-community/netinfo/jest/netinfo-mock.js'));
+// Red simulada con estado conmutable (modo avión): global.__red.desconectar() / conectar().
+jest.mock('@react-native-community/netinfo', () => require('./jest/redSimulada'));
+
+// Base local: SQLite real de Node en memoria con la API de expo-sqlite.
+jest.mock('expo-sqlite', () => require('./jest/sqliteNode'));
+
+// Sistema de archivos: las fotos de la cola se "copian" a documentos/cola/.
+jest.mock('expo-file-system', () => {
+  class Directory {
+    constructor(...partes) { this.uri = partes.map((p) => (typeof p === 'string' ? p : p.uri)).join('/'); }
+    create() {}
+  }
+  class File {
+    constructor(...partes) { this.uri = partes.map((p) => (typeof p === 'string' ? p : p.uri)).join('/'); this.exists = true; }
+    async copy() {}
+    delete() { global.__archivosBorrados.push(this.uri); }
+  }
+  global.__archivosBorrados = [];
+  return { Directory, File, Paths: { document: new Directory('file:///documentos'), cache: new Directory('file:///cache') } };
+});
 
 // Almacén seguro en memoria; las pruebas lo leen en global.__almacenSeguro.
 jest.mock('expo-secure-store', () => {
@@ -12,8 +30,16 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
-// UUID fijo para comprobar la idempotencia de la publicación.
-jest.mock('expo-crypto', () => ({ randomUUID: jest.fn(() => '11111111-1111-4111-8111-111111111111') }));
+// UUID: el primero de cada prueba es fijo (id de la publicación); los siguientes, distintos (ids de la cola).
+jest.mock('expo-crypto', () => {
+  global.__uuids = 0;
+  return {
+    randomUUID: jest.fn(() => {
+      global.__uuids += 1;
+      return global.__uuids === 1 ? '11111111-1111-4111-8111-111111111111' : `22222222-2222-4222-8222-${String(global.__uuids).padStart(12, '0')}`;
+    }),
+  };
+});
 
 // Cámara/galería y compresión simuladas: devuelven una foto ya comprimida.
 jest.mock('expo-image-picker', () => {

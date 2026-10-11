@@ -70,6 +70,11 @@ npm start                     # escanear el QR con Expo Go
 npm test
 ```
 
+Modo sin conexión (AGRO-10): la app guarda su copia local en SQLite (`expo-sqlite`). En las pruebas, `expo-sqlite`
+se reemplaza por el SQLite de Node 22 (`node:sqlite`, en memoria), así que el SQL de la base local se prueba tal cual.
+La vista web (`npm run web`, solo para revisar pantallas) usa SQLite en WebAssembly y necesita las cabeceras
+COOP/COEP que ya configura `metro.config.js`. Para probar sin señal en Android: modo avión.
+
 ## Flujo de trabajo
 
 Resumen de [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md):
