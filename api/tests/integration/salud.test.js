@@ -67,3 +67,17 @@ describe('Restricciones de la migración 001', () => {
     }
   });
 });
+
+describe('CORS de desarrollo', () => {
+  test('solo responde con cabeceras CORS a orígenes permitidos', async () => {
+    const { cors } = require('../../src/middleware/cors');
+    const express = require('express');
+    const a = express();
+    a.use(cors(['http://localhost:8081']));
+    a.get('/x', (req, res) => res.json({ ok: true }));
+    const permitido = await request(a).get('/x').set('Origin', 'http://localhost:8081');
+    expect(permitido.headers['access-control-allow-origin']).toBe('http://localhost:8081');
+    const ajeno = await request(a).get('/x').set('Origin', 'http://evil.example');
+    expect(ajeno.headers['access-control-allow-origin']).toBeUndefined();
+  });
+});
