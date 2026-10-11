@@ -64,6 +64,8 @@ api/src/
 - Solo los repositorios hablan con PostgreSQL.
 - Los servicios no conocen Express.
 - Toda consulta SQL es parametrizada (`$1, $2…`); nunca se concatenan valores del usuario.
+- Las rutas protegidas usan `autenticar(tokens)` y, si dependen del rol, `autorizar('PRODUCTOR')` (ver `src/middleware/autenticacion.js`).
+- Nunca se registra en logs ni se devuelve `contrasena_hash`, tokens o secretos.
 
 ## Migraciones
 
@@ -82,8 +84,9 @@ Formato único de respuesta de error:
 | HTTP | Cuándo |
 |---|---|
 | 400 | Datos inválidos |
-| 401 | Sin token válido |
-| 403 | Sin permiso por rol |
+| 401 | Sin token válido (`NO_AUTENTICADO`, `SESION_EXPIRADA`) o credenciales inválidas (`CREDENCIALES_INVALIDAS`) |
+| 403 | Sin permiso por rol (`SIN_PERMISO`) o cuenta suspendida (`CUENTA_SUSPENDIDA`) |
+| 423 | Cuenta bloqueada temporalmente (`CUENTA_BLOQUEADA`) |
 | 404 | Recurso inexistente |
-| 409 | Conflicto de stock, de versión o de transición de estado |
+| 409 | Conflicto de stock, de versión, de transición de estado o cuenta existente (`CUENTA_EXISTENTE`) |
 | 500 | Error no controlado (se registra; no se exponen detalles) |

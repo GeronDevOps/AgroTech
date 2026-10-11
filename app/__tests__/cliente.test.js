@@ -34,3 +34,32 @@ describe('cliente de la API', () => {
     expect(opciones.body).toBe('{"a":1}');
   });
 });
+
+describe('cliente con sesión (AGRO-5)', () => {
+  const { establecerToken, alRechazarSesion } = require('../src/api/cliente');
+  afterEach(() => { establecerToken(null); alRechazarSesion(null); });
+
+  test('agrega el token en Authorization', async () => {
+    establecerToken('abc');
+    global.fetch = jest.fn(async () => respuesta(200, {}));
+    await solicitar('/auth/yo');
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBe('Bearer abc');
+  });
+
+  test('avisa a la sesión cuando el servidor rechaza el token', async () => {
+    establecerToken('vencido');
+    const rechazo = jest.fn();
+    alRechazarSesion(rechazo);
+    global.fetch = jest.fn(async () => respuesta(401, { error: { codigo: 'SESION_EXPIRADA', mensaje: 'x' } }));
+    await expect(solicitar('/auth/yo')).rejects.toMatchObject({ codigo: 'SESION_EXPIRADA' });
+    expect(rechazo).toHaveBeenCalledTimes(1);
+  });
+
+  test('un 401 por credenciales no cierra ninguna sesión', async () => {
+    const rechazo = jest.fn();
+    alRechazarSesion(rechazo);
+    global.fetch = jest.fn(async () => respuesta(401, { error: { codigo: 'CREDENCIALES_INVALIDAS', mensaje: 'x' } }));
+    await expect(solicitar('/auth/sesion', { metodo: 'POST', cuerpo: {} })).rejects.toBeTruthy();
+    expect(rechazo).not.toHaveBeenCalled();
+  });
+});

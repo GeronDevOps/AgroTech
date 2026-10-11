@@ -1,26 +1,78 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { api, alRechazarSesion, establecerToken } from '../api/cliente';
+import { borrarSesion, guardarSesion, leerSesion } from './almacen';
 
 /**
- * Estado de la sesión y rol del usuario.
- * Fase 1: sesión de demostración en memoria para validar la navegación por rol.
- * Fase 2 (AGRO-5): inicio de sesión real con JWT guardado en el almacén seguro del teléfono.
+ * Sesión del usuario (AGRO-5 · CU-01, CU-21).
+ * - Guarda { token, expiraEn, usuario } en el almacén seguro.
+ * - Al abrir la app restaura la sesión SIN depender de la red (usuarios rurales con mala señal)
+ *   y la valida en segundo plano con GET /auth/yo: solo un 401 la cierra.
  */
 export const ROLES = Object.freeze({ PRODUCTOR: 'PRODUCTOR', CONSUMIDOR: 'CONSUMIDOR' });
 
 const SesionContext = createContext(null);
 
-export function SesionProvider({ children, sesionInicial = null }) {
-  const [usuario, setUsuario] = useState(sesionInicial);
+const vencida = (s) => !s || !s.token || !s.usuario || new Date(s.expiraEn).getTime() <= Date.now();
+
+export function SesionProvider({ children }) {
+  const [sesion, setSesion] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
+  const cerrarSesion = useCallback(async () => {
+    establecerToken(null);
+    setSesion(null);
+    await borrarSesion();
+  }, []);
+
+  const abrir = useCallback(async ({ token, expiraEn, usuario }) => {
+    const nueva = { token, expiraEn, usuario };
+    await guardarSesion(nueva);
+    establecerToken(token);
+    setSesion(nueva);
+    return usuario;
+  }, []);
+
+  // Restaurar al iniciar la app.
+  useEffect(() => {
+    let activo = true;
+    alRechazarSesion(() => { cerrarSesion(); });
+    (async () => {
+      const guardada = await leerSesion();
+      if (!activo) return;
+      if (vencida(guardada)) {
+        if (guardada) await borrarSesion();
+        setCargando(false);
+        return;
+      }
+      establecerToken(guardada.token);
+      setSesion(guardada);
+      setCargando(false);
+      try {
+        const { usuario } = await api.yo(); // refresca nombre/municipio; un 401 dispara cerrarSesion
+        if (activo) {
+          const actualizada = { ...guardada, usuario };
+          setSesion(actualizada);
+          await guardarSesion(actualizada);
+        }
+      } catch {
+        // Sin señal u otro error: se conserva la sesión guardada (operación sin conexión, RF-17).
+      }
+    })();
+    return () => { activo = false; };
+  }, [cerrarSesion]);
 
   const valor = useMemo(() => ({
-    usuario,
-    rol: usuario ? usuario.rol : null,
-    iniciarDemo(rol) {
-      if (!Object.values(ROLES).includes(rol)) throw new Error(`Rol desconocido: ${rol}`);
-      setUsuario({ nombres: rol === ROLES.PRODUCTOR ? 'Rosa' : 'Andrés', rol });
+    cargando,
+    usuario: sesion ? sesion.usuario : null,
+    rol: sesion ? sesion.usuario.rol : null,
+    async iniciarSesion(identificador, contrasena) {
+      return abrir(await api.iniciarSesion(identificador, contrasena));
     },
-    cerrarSesion() { setUsuario(null); },
-  }), [usuario]);
+    async registrar(datos) {
+      return abrir(await api.registrar(datos));
+    },
+    cerrarSesion,
+  }), [sesion, cargando, abrir, cerrarSesion]);
 
   return <SesionContext.Provider value={valor}>{children}</SesionContext.Provider>;
 }

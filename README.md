@@ -40,7 +40,7 @@ createdb agrotech_test
 
 ```bash
 cd api
-cp .env.example .env          # ajustar DATABASE_URL
+cp .env.example .env          # ajustar DATABASE_URL y generar JWT_SECRETO (ver el comentario del archivo)
 npm install
 npm run migrate               # aplica /db/migrations
 npm run dev                   # http://localhost:3000/api/v1/salud
@@ -75,4 +75,4 @@ Resumen de [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md):
 | `api` | `npm ci` → lint → `npm run migrate` → `npm test` | Node 22 + servicio `postgis/postgis:17-3.5` |
 | `app` | `npm ci` → lint → `npm test` → `expo export --platform android` | Node 22 |
 
-Plan de fases: [docs/PLAN_DESARROLLO.md](docs/PLAN_DESARROLLO.md).
+Plan de fases: [docs/PLAN_DESARROLLO.md](docs/PLAN_DESARROLLO.md) · Contrato de la API: [docs/API.md](docs/API.md) · Decisiones: [docs/decisiones/](docs/decisiones/).
