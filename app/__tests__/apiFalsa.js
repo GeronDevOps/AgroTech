@@ -7,7 +7,7 @@ export function apiFalsa(manejadores = {}) {
   global.fetch = jest.fn(async (url, opciones = {}) => {
     const ruta = url.replace(/^.*\/api\/v1/, '');
     const clave = `${opciones.method || 'GET'} ${ruta}`;
-    const cuerpo = opciones.body ? JSON.parse(opciones.body) : undefined;
+    const cuerpo = typeof opciones.body === 'string' ? JSON.parse(opciones.body) : leerFormulario(opciones.body);
     llamadas.push({ clave, cuerpo, cabeceras: opciones.headers || {} });
     const manejador = manejadores[clave]
       || (clave === 'GET /salud' ? () => [200, { estado: 'ok', baseDeDatos: { migracion: '001' } }] : null);
@@ -17,6 +17,18 @@ export function apiFalsa(manejadores = {}) {
     return respuesta(r[0], r[1]);
   });
   return llamadas;
+}
+
+/** FormData → { campo: valor } (sirve con la implementación de React Native y con la de Node). */
+function leerFormulario(fd) {
+  if (!fd) return undefined;
+  const partes = {};
+  if (typeof fd.getParts === 'function') {
+    for (const p of fd.getParts()) partes[p.fieldName] = p.string !== undefined ? p.string : p;
+  } else {
+    for (const [k, v] of fd.entries()) partes[k] = v;
+  }
+  return partes;
 }
 
 function respuesta(status, json) {
@@ -33,3 +45,15 @@ export const usuarioAndres = { ...usuarioRosa, id: 'u-andres', nombres: 'Andrés
 const enUnaSemana = () => new Date(Date.now() + 7 * 864e5).toISOString();
 
 export const sesionDe = (usuario) => ({ token: `jwt-${usuario.id}`, tipo: 'Bearer', expiraEn: enUnaSemana(), usuario });
+
+/** Producto como lo devuelve la API (productoPublico). */
+export function productoApi(extra = {}) {
+  return {
+    id: 'p-papa', nombre: 'Papa pastusa', descripcion: 'Cosecha de esta semana', categoria: 'TUBERCULOS',
+    precio: 85000, unidad: 'bulto', stock: 20, estado: 'ACTIVA', municipio: 'Pamplonita', version: 1,
+    fotoUrl: 'http://api/fotos/p.jpg', miniaturaUrl: 'http://api/fotos/p_min.jpg',
+    fechaPublicacion: '2026-10-11T10:00:00Z', actualizadoEn: '2026-10-11T10:00:00Z',
+    productor: { id: 'u-rosa', nombre: 'Rosa P.', verificado: false, calificacion: { promedio: null, total: 0 } },
+    ...extra,
+  };
+}

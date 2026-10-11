@@ -5,7 +5,7 @@ import { BotonGrande } from '../../componentes/BotonGrande';
 import { useSesion } from '../../sesion/SesionContext';
 import { colores, espacio, texto } from '../../tema/tema';
 
-/** Inicio del productor (wireframe 1): cada tarea crítica queda a un toque. */
+/** Inicio del productor (wireframe 1): cada tarea crítica queda a un toque (RNF-02). */
 export default function InicioProductor() {
   const router = useRouter();
   const { usuario, cerrarSesion } = useSesion();
@@ -15,6 +15,7 @@ export default function InicioProductor() {
       <Text style={styles.saludo} accessibilityRole="header">Hola, {usuario.nombres}</Text>
       <View style={styles.rejilla}>
         <Mosaico icono="＋" titulo="Publicar producto" color={colores.mosaicos.publicar} onPress={() => router.push('/productor/publicar')} />
+        <Mosaico icono="🧺" titulo="Mis productos" color={colores.mosaicos.productos} onPress={() => router.push('/productor/productos')} />
         <Mosaico icono="▤" titulo="Mis pedidos" color={colores.mosaicos.pedidos} onPress={() => router.push('/productor/pedidos')} />
         <Mosaico icono="▲" titulo="Mis ventas" color={colores.mosaicos.ventas} onPress={() => router.push('/productor/ventas')} />
         <Mosaico icono="✉" titulo="Mensajes" color={colores.mosaicos.mensajes} onPress={() => router.push('/productor/mensajes')} />

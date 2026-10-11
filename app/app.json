@@ -24,7 +24,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "AgroTech usa la cámara para tomar la foto de sus productos.",
+          "photosPermission": "AgroTech usa sus fotos para mostrar sus productos en el catálogo.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "scheme": "agrotech",
     "experiments": {
