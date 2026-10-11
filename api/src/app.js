@@ -3,6 +3,8 @@
 const express = require('express');
 const { apiRoutes } = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error-handler');
+const { cors } = require('./middleware/cors');
+const config = require('./config/env');
 
 /**
  * Crea la aplicación Express sin abrir el puerto, para poder probarla con supertest.
@@ -21,6 +23,7 @@ function createApp(deps) {
     });
     next();
   });
+  app.use(cors(config.corsOrigins));
   app.use(express.json({ limit: '1mb' }));
 
   app.use('/api/v1', apiRoutes(deps));
