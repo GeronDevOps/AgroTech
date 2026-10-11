@@ -18,6 +18,11 @@ function toHttpError(err) {
   if (err instanceof HttpError) return err;
   if (err && err.type === 'entity.parse.failed') return errores.datosInvalidos('El cuerpo de la petición no es un JSON válido.');
   if (err && err.type === 'entity.too.large') return new HttpError(413, 'DEMASIADO_GRANDE', 'La petición supera el tamaño permitido.');
+  if (err && err.name === 'MulterError') {
+    return err.code === 'LIMIT_FILE_SIZE'
+      ? new HttpError(413, 'FOTO_MUY_GRANDE', 'La foto supera el tamaño permitido (300 KB).')
+      : errores.datosInvalidos('El envío de la foto no es válido.', { motivo: err.code });
+  }
   if (err && typeof err.code === 'string' && PG[err.code]) return PG[err.code](err);
   return null;
 }

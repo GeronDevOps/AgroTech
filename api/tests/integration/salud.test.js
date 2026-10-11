@@ -21,7 +21,7 @@ describe('GET /api/v1/salud', () => {
     expect(res.status).toBe(200);
     expect(res.body.estado).toBe('ok');
     expect(res.body.baseDeDatos.estado).toBe('ok');
-    expect(res.body.baseDeDatos.migracion).toBe('001');
+    expect(res.body.baseDeDatos.migracion).toBe('002');
   });
 
   test('incluye cabeceras de seguridad y oculta X-Powered-By', async () => {
