@@ -9,6 +9,7 @@ export default function ProductorLayout() {
       <Stack.Screen name="productos" options={{ title: 'Mis productos' }} />
       <Stack.Screen name="editar/[id]" options={{ title: 'Precio y cantidad' }} />
       <Stack.Screen name="pedidos" options={{ title: 'Mis pedidos' }} />
+      <Stack.Screen name="pedido/[id]" options={{ title: 'Pedido' }} />
       <Stack.Screen name="ventas" options={{ title: 'Mis ventas' }} />
       <Stack.Screen name="mensajes" options={{ title: 'Mensajes' }} />
     </Stack>

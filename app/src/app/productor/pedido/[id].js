@@ -1,0 +1,105 @@
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { BotonGrande } from '../../../componentes/BotonGrande';
+import { CampoTexto } from '../../../componentes/CampoTexto';
+import { Aviso } from '../../../componentes/Aviso';
+import { DetallePedido } from '../../../componentes/DetallePedido';
+import { api } from '../../../api/cliente';
+import { useConexion } from '../../../hooks/useConexion';
+import { mensajeDeError } from '../../../validacion/cuenta';
+import { colores, espacio, texto } from '../../../tema/tema';
+
+/** Siguiente paso permitido según el diagrama de estados del pedido (Entrega 3, Ilustración 7a). */
+const SIGUIENTE = {
+  ACEPTADO: { estado: 'EN_CAMINO', titulo: '🚚 Marcar en camino' },
+  EN_CAMINO: { estado: 'ENTREGADO', titulo: '✅ Marcar entregado' },
+};
+
+/** CU-13 · Gestionar el pedido: aceptar o rechazar (con motivo) y avanzar el estado. Requiere red (A4). */
+export default function PedidoProductor() {
+  const { id } = useLocalSearchParams();
+  const { enLinea } = useConexion();
+  const [pedido, setPedido] = useState(null);
+  const [aviso, setAviso] = useState(null);
+  const [rechazando, setRechazando] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [errorMotivo, setErrorMotivo] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+
+  const cargar = useCallback(async () => {
+    try {
+      setPedido((await api.pedido(id)).pedido);
+    } catch (err) {
+      setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+    }
+  }, [id]);
+  // Se consulta al abrir y cada vez que se vuelve a la pantalla (p. ej. al regresar de la página de pago).
+  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+
+  async function cambiar(estado, extra = {}) {
+    setOcupado(true);
+    setAviso(null);
+    try {
+      const r = await api.cambiarEstadoPedido(id, { estado, version: pedido.version, ...extra });
+      setPedido(r.pedido);
+      setRechazando(false);
+      setAviso({ tipo: 'info', mensaje: `✓ Pedido ${estado === 'CANCELADO' ? 'rechazado; el inventario volvió a su publicación' : 'actualizado'}. El consumidor verá el cambio.` });
+    } catch (err) {
+      setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+      if (err.codigo === 'CONFLICTO_VERSION') cargar();
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  function rechazar() {
+    if (motivo.trim().length < 3) return setErrorMotivo('Escriba el motivo para el consumidor.');
+    setErrorMotivo(null);
+    return cambiar('CANCELADO', { motivo: motivo.trim() });
+  }
+
+  if (!pedido) {
+    return <View style={styles.centro}>{aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} /> : <ActivityIndicator size="large" color={colores.primario} />}</View>;
+  }
+
+  const esperaPago = pedido.metodoPago === 'EN_LINEA' && pedido.estadoPago !== 'APROBADO';
+  const siguiente = SIGUIENTE[pedido.estado];
+  const deshabilitado = ocupado || !enLinea;
+
+  return (
+    <ScrollView style={styles.pantalla} contentContainerStyle={styles.contenido} refreshControl={<RefreshControl refreshing={false} onRefresh={cargar} />}>
+      {!enLinea ? <Aviso tipo="sinSenal" mensaje="Sin señal. Para cambiar el estado del pedido necesita conexión." /> : null}
+      {aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} testID="aviso-pedido" /> : null}
+
+      {pedido.estado === 'PENDIENTE' ? (
+        <View style={styles.acciones}>
+          <Text style={styles.accionesTitulo}>¿Puede atender este pedido?</Text>
+          {esperaPago ? (
+            <Aviso tipo="sinSenal" mensaje="El consumidor eligió pagar en línea y el pago aún no está aprobado. Podrá aceptarlo cuando se apruebe." testID="aviso-espera-pago" />
+          ) : null}
+          <BotonGrande titulo="✔ Aceptar pedido" onPress={() => cambiar('ACEPTADO')} deshabilitado={deshabilitado || esperaPago} />
+          {rechazando ? (
+            <View>
+              <CampoTexto etiqueta="Motivo del rechazo" value={motivo} onChangeText={setMotivo} error={errorMotivo} placeholder="Ej.: no alcanzo a cosechar esa cantidad" />
+              <BotonGrande titulo="Confirmar rechazo" variante="secundario" onPress={rechazar} deshabilitado={deshabilitado} />
+            </View>
+          ) : (
+            <BotonGrande titulo="✖ Rechazar" variante="secundario" onPress={() => setRechazando(true)} deshabilitado={deshabilitado} />
+          )}
+        </View>
+      ) : null}
+      {siguiente ? <BotonGrande titulo={siguiente.titulo} onPress={() => cambiar(siguiente.estado)} deshabilitado={deshabilitado} /> : null}
+
+      <DetallePedido pedido={pedido} contraparte={pedido.consumidor.nombre} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  pantalla: { flex: 1, backgroundColor: colores.fondo },
+  contenido: { padding: espacio.m, paddingBottom: espacio.xl },
+  centro: { flex: 1, justifyContent: 'center', padding: espacio.l, backgroundColor: colores.fondo },
+  acciones: { borderWidth: 2, borderColor: '#d6b656', backgroundColor: '#FFF8E1', borderRadius: 14, padding: espacio.m, marginBottom: espacio.m },
+  accionesTitulo: { fontSize: texto.titulo, fontWeight: '800', color: colores.texto, marginBottom: espacio.xs },
+});

@@ -38,3 +38,9 @@ jest.mock('expo-image-manipulator', () => ({
     })),
   },
 }));
+
+// Página de pago de Wompi simulada: el usuario vuelve a la app con la redirección.
+jest.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: jest.fn(async (url, retorno) => ({ type: 'success', url: `${retorno}?id=tx-1` })),
+  maybeCompleteAuthSession: jest.fn(),
+}));

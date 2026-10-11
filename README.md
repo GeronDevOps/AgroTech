@@ -47,6 +47,19 @@ npm run dev                   # http://localhost:3000/api/v1/salud
 npm test                      # pruebas unitarias y de integración
 ```
 
+Pago en línea (RF-21, [ADR-001](docs/decisiones/ADR-001-pasarela-de-pago.md)): sin estas variables la API responde `503 PASARELA_NO_CONFIGURADA` y la app ofrece solo contra entrega.
+
+| Variable | Origen |
+|---|---|
+| `WOMPI_LLAVE_PUBLICA` | Panel de comercios de Wompi → Desarrolladores → llave pública de pruebas (`pub_test_…`) |
+| `WOMPI_SECRETO_INTEGRIDAD` | Mismo panel → secreto de integridad (firma del checkout) |
+| `WOMPI_SECRETO_EVENTOS` | Mismo panel → secreto de eventos (firma del webhook) |
+| `WOMPI_AMBIENTE` | `test` (sandbox) o `prod` |
+| `WOMPI_URL_RETORNO` | `https://<api>/api/v1/pagos/retorno` |
+| URL de eventos (en el panel) | `https://<api>/api/v1/pagos/wompi/eventos` |
+
+Las llaves nunca se suben al repositorio (`.env` está en `.gitignore`).
+
 ### App
 
 ```bash

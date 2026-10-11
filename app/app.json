@@ -32,7 +32,8 @@
           "photosPermission": "AgroTech usa sus fotos para mostrar sus productos en el catálogo.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "scheme": "agrotech",
     "experiments": {

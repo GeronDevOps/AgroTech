@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BotonGrande } from '../../../componentes/BotonGrande';
 import { Aviso } from '../../../componentes/Aviso';
+import { Cantidad } from '../../../componentes/Cantidad';
+import { useCarrito } from '../../../carrito/CarritoContext';
 import { api } from '../../../api/cliente';
 import { categoria as datosCategoria, unidad as datosUnidad } from '../../../datos/catalogo';
-import { formatoCantidad, formatoPesos } from '../../../utilidades/formato';
+import { formatoCantidad, formatoPesos, leerNumero } from '../../../utilidades/formato';
 import { mensajeDeError } from '../../../validacion/cuenta';
 import { colores, espacio, texto } from '../../../tema/tema';
 
 /** CU-03 paso 3 · Detalle: foto, precio, cantidad, productor y su calificación. Agotado no se puede pedir (A3). */
 export default function DetalleProducto() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const carrito = useCarrito();
   const [producto, setProducto] = useState(null);
   const [error, setError] = useState(null);
+  const [cantidad, setCantidad] = useState('1');
+  const [agregado, setAgregado] = useState(null);
+  const [errorCantidad, setErrorCantidad] = useState(null);
 
   useEffect(() => {
     api.producto(id).then((r) => setProducto(r.producto)).catch((err) => setError(mensajeDeError(err)));
@@ -31,6 +38,17 @@ export default function DetalleProducto() {
   const c = datosCategoria(producto.categoria);
   const agotado = producto.estado !== 'ACTIVA' || producto.stock <= 0;
   const { calificacion } = producto.productor;
+
+  function agregar() {
+    const n = leerNumero(cantidad, { decimales: true });
+    const enCarrito = carrito.cantidadDe(producto.id);
+    if (!(n > 0) || Math.round(n * 100) !== n * 100) return setErrorCantidad('Escriba una cantidad mayor que 0.');
+    if (n + enCarrito > producto.stock) {
+      return setErrorCantidad(`Solo hay ${formatoCantidad(producto.stock - enCarrito)} ${u.plural} disponibles.`);
+    }
+    carrito.agregar(producto, n);
+    return setAgregado(`✓ Agregó ${formatoCantidad(n)} ${n === 1 ? u.singular : u.plural} de ${producto.nombre}.`);
+  }
 
   return (
     <ScrollView style={styles.pantalla} contentContainerStyle={styles.contenido}>
@@ -53,11 +71,20 @@ export default function DetalleProducto() {
 
       {producto.descripcion ? <Text style={styles.descripcion}>{producto.descripcion}</Text> : null}
 
-      {/* El carrito y la confirmación del pedido se construyen en la fase 4 (AGRO-8). */}
-      <View style={styles.acciones}>
-        <BotonGrande titulo="🛒 Agregar al carrito" deshabilitado accessibilityHint="Disponible cuando se habiliten los pedidos" onPress={() => {}} />
-        <Text style={styles.nota}>El carrito se habilita en la fase 4 (AGRO-8).</Text>
-      </View>
+      {!agotado ? (
+        <View style={styles.acciones}>
+          {agregado ? (
+            <Aviso tipo="info" mensaje={agregado} testID="aviso-agregado">
+              <BotonGrande titulo="🛒 Ver carrito" onPress={() => router.push('/consumidor/carrito')} />
+            </Aviso>
+          ) : null}
+          <Cantidad etiqueta={`¿Cuántos ${u.plural}?`} valor={cantidad} onCambiar={(t) => { setCantidad(t); setErrorCantidad(null); }} error={errorCantidad} minimo={0} sufijo={u.plural} />
+          <BotonGrande titulo="🛒 Agregar al carrito" onPress={agregar} />
+          {carrito.cantidadDe(producto.id) > 0 ? (
+            <Text style={styles.nota}>Ya tiene {formatoCantidad(carrito.cantidadDe(producto.id))} {u.plural} en el carrito.</Text>
+          ) : null}
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
@@ -85,6 +112,6 @@ const styles = StyleSheet.create({
   datoEtiqueta: { fontSize: texto.base, color: colores.textoSecundario },
   datoValor: { fontSize: texto.base, fontWeight: '700', color: colores.texto, flexShrink: 1, textAlign: 'right' },
   descripcion: { fontSize: texto.base, color: colores.texto, margin: espacio.m, lineHeight: 24 },
-  acciones: { paddingHorizontal: espacio.m },
-  nota: { fontSize: texto.pequeno, color: colores.textoSecundario, textAlign: 'center' },
+  acciones: { paddingHorizontal: espacio.m, marginTop: espacio.m },
+  nota: { fontSize: texto.pequeno, color: colores.textoSecundario, textAlign: 'center', marginTop: espacio.xs },
 });

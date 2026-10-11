@@ -11,6 +11,7 @@ import { api } from '../../api/cliente';
 import { CATEGORIAS, categoria as datosCategoria } from '../../datos/catalogo';
 import { MUNICIPIOS } from '../../datos/municipios';
 import { useSesion } from '../../sesion/SesionContext';
+import { useCarrito } from '../../carrito/CarritoContext';
 import { formatoPesos, leerNumero } from '../../utilidades/formato';
 import { mensajeDeError } from '../../validacion/cuenta';
 import { colores, espacio, texto, toque } from '../../tema/tema';
@@ -31,6 +32,7 @@ const hora = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinu
 export default function Catalogo() {
   const router = useRouter();
   const { cerrarSesion } = useSesion();
+  const { cantidadProductos } = useCarrito();
   // Cada cambio de filtro o de página es una "solicitud"; el efecto la atiende y guarda la respuesta.
   const [solicitud, setSolicitud] = useState({ filtros: SIN_FILTROS, pagina: 1, n: 0 });
   const [respondida, setRespondida] = useState(-1);
@@ -113,7 +115,7 @@ export default function Catalogo() {
       />
 
       <View style={styles.barraInferior}>
-        <Accion icono="🛒" texto="Mi carrito" onPress={() => router.push('/consumidor/carrito')} />
+        <Accion icono="🛒" texto={cantidadProductos ? `Mi carrito (${cantidadProductos})` : 'Mi carrito'} onPress={() => router.push('/consumidor/carrito')} />
         <Accion icono="▤" texto="Mis pedidos" onPress={() => router.push('/consumidor/pedidos')} />
         <Accion icono="🚪" texto="Salir" onPress={cerrarSesion} />
       </View>
