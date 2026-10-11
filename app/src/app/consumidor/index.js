@@ -127,6 +127,7 @@ export default function Catalogo() {
       <View style={styles.barraInferior}>
         <Accion icono="🛒" texto={cantidadProductos ? `Mi carrito (${cantidadProductos})` : 'Mi carrito'} onPress={() => router.push('/consumidor/carrito')} />
         <Accion icono="▤" texto="Mis pedidos" onPress={() => router.push('/consumidor/pedidos')} />
+        <Accion icono="💬" texto="Mensajes" onPress={() => router.push('/consumidor/mensajes')} />
         <Accion icono="🚪" texto="Salir" onPress={cerrarSesion} />
       </View>
 

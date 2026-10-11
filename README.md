@@ -60,6 +60,17 @@ Pago en línea (RF-21, [ADR-001](docs/decisiones/ADR-001-pasarela-de-pago.md)): 
 
 Las llaves nunca se suben al repositorio (`.env` está en `.gitignore`).
 
+Avisos push (RF-16a · Firebase Cloud Messaging):
+
+| Dónde | Qué |
+|---|---|
+| API · `FCM_CREDENCIALES` | Ruta al JSON de la cuenta de servicio (consola de Firebase → Configuración del proyecto → Cuentas de servicio). Sin ella el push queda desactivado y los avisos llegan solo por WebSocket |
+| App · `app/google-services.json` | Archivo de la app Android registrada en Firebase con el paquete `co.edu.unipamplona.agrotech`. En EAS: variable de tipo archivo `GOOGLE_SERVICES_JSON` (ver `app.config.js`) |
+| Teléfono | El push no funciona en Expo Go (Android): se prueba con una compilación de desarrollo (`npx expo run:android` o EAS) o con el APK |
+
+Ninguno de los dos archivos de Firebase se sube al repositorio (`.gitignore`).
+El chat y los avisos dentro de la app usan el WebSocket de la API (`/ws`, mismo puerto).
+
 ### App
 
 ```bash

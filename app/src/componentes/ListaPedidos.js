@@ -4,6 +4,7 @@ import { useFocusEffect } from 'expo-router';
 import { Aviso } from './Aviso';
 import { AvisoSinSenal } from './AvisoSinSenal';
 import { guardarPedidos, pedidosLocal } from '../local/cache';
+import { useTiempoReal } from '../tiempoReal/TiempoRealContext';
 import { Opciones } from './Opciones';
 import { TarjetaPedido } from './TarjetaPedido';
 import { api } from '../api/cliente';
@@ -21,6 +22,7 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
   const [pedidos, setPedidos] = useState(null);
   const [error, setError] = useState(null);
   const [desdeCache, setDesdeCache] = useState(false);
+  const { versionPedidos } = useTiempoReal();
   const [cargando, setCargando] = useState(false);
 
   const cargar = useCallback(async (f) => {
@@ -45,7 +47,11 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { cargar(filtro); }, [cargar, filtro]));
+  // Se recarga sola cuando llega un pedido nuevo o cambia uno (tiempo real, CA-06 y CA-08).
+  useFocusEffect(useCallback(() => {
+    cargar(filtro);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- versionPedidos solo dispara la recarga
+  }, [cargar, filtro, versionPedidos]));
 
   return (
     <FlatList

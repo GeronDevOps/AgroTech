@@ -5,6 +5,9 @@ import { BotonGrande } from '../../../componentes/BotonGrande';
 import { CampoTexto } from '../../../componentes/CampoTexto';
 import { Aviso } from '../../../componentes/Aviso';
 import { DetallePedido } from '../../../componentes/DetallePedido';
+import { BotonChat } from '../../../componentes/BotonChat';
+import { Estrellas } from '../../../componentes/Calificacion';
+import { useTiempoReal } from '../../../tiempoReal/TiempoRealContext';
 import { api } from '../../../api/cliente';
 import { guardarPedidos, pedidoLocal } from '../../../local/cache';
 import { AvisoSinSenal } from '../../../componentes/AvisoSinSenal';
@@ -24,6 +27,7 @@ export default function PedidoProductor() {
   const { enLinea } = useConexion();
   const [pedido, setPedido] = useState(null);
   const [desdeCache, setDesdeCache] = useState(false);
+  const { versionPedidos } = useTiempoReal();
   const [aviso, setAviso] = useState(null);
   const [rechazando, setRechazando] = useState(false);
   const [motivo, setMotivo] = useState('');
@@ -47,7 +51,8 @@ export default function PedidoProductor() {
     }
   }, [id]);
   // Se consulta al abrir y cada vez que se vuelve a la pantalla (p. ej. al regresar de la página de pago).
-  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- versionPedidos (tiempo real) solo dispara la recarga
+  useFocusEffect(useCallback(() => { cargar(); }, [cargar, versionPedidos]));
 
   async function cambiar(estado, extra = {}) {
     setOcupado(true);
@@ -104,6 +109,14 @@ export default function PedidoProductor() {
       ) : null}
       {siguiente ? <BotonGrande titulo={siguiente.titulo} onPress={() => cambiar(siguiente.estado)} deshabilitado={deshabilitado} /> : null}
 
+      {pedido.calificacion ? (
+        <View style={styles.calificacion} testID="calificacion-recibida">
+          <Text style={styles.calificacionTitulo}>Calificación de {pedido.consumidor.nombre}</Text>
+          <Estrellas promedio={pedido.calificacion.puntuacion} />
+          {pedido.calificacion.comentario ? <Text style={styles.calificacionTexto}>“{pedido.calificacion.comentario}”</Text> : null}
+        </View>
+      ) : null}
+      <BotonChat pedido={pedido} rol="PRODUCTOR" contraparte={pedido.consumidor.nombre} />
       <DetallePedido pedido={pedido} contraparte={pedido.consumidor.nombre} />
     </ScrollView>
   );
@@ -114,5 +127,8 @@ const styles = StyleSheet.create({
   contenido: { padding: espacio.m, paddingBottom: espacio.xl },
   centro: { flex: 1, justifyContent: 'center', padding: espacio.l, backgroundColor: colores.fondo },
   acciones: { borderWidth: 2, borderColor: '#d6b656', backgroundColor: '#FFF8E1', borderRadius: 14, padding: espacio.m, marginBottom: espacio.m },
+  calificacion: { borderRadius: 14, padding: espacio.m, marginBottom: espacio.m, backgroundColor: '#FFF8E1' },
+  calificacionTitulo: { fontSize: texto.base, fontWeight: '800', color: colores.texto },
+  calificacionTexto: { fontSize: texto.base, fontStyle: 'italic', color: colores.texto },
   accionesTitulo: { fontSize: texto.titulo, fontWeight: '800', color: colores.texto, marginBottom: espacio.xs },
 });

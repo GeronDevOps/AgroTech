@@ -4,7 +4,7 @@ import { useConexion } from '../hooks/useConexion';
 import { leerMeta } from '../local/baseLocal';
 import { borrarFotosCola, guardarFotosCola } from '../local/archivosCola';
 import {
-  descartarOperacion, encolarEdicion, encolarPublicacion, operacionesEnCola, reintentarOperacion, resumenCola,
+  descartarOperacion, encolarCreacion, encolarEdicion, encolarPublicacion, operacionesEnCola, reintentarOperacion, resumenCola,
 } from '../local/cola';
 import { sincronizarAhora } from './motor';
 
@@ -104,6 +104,16 @@ export function SincronizacionProvider({ children }) {
     /** RF-10a sin red. */
     async editarDespues(producto, cambios) {
       await encolarEdicion(producto.id, cambios, producto.version);
+      await despuesDeEncolar();
+    },
+    /** CU-05 A1: el mensaje queda "Pendiente" y se reenvía al volver la señal (mismo id: no se duplica). */
+    async mensajeDespues(idPedido, mensaje) {
+      await encolarCreacion('MENSAJE', mensaje.id, { idPedido, contenido: mensaje.contenido });
+      await despuesDeEncolar();
+    },
+    /** CU-06 A3: la calificación se guarda en el teléfono y se sincroniza después. */
+    async calificarDespues(idPedido, datos) {
+      await encolarCreacion('CALIFICACION', idPedido, datos);
       await despuesDeEncolar();
     },
     /** CU-17 A1. */

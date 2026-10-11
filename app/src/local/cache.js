@@ -134,3 +134,28 @@ export async function guardarCarrito(lineas) {
     }
   });
 }
+
+/** Chat (CU-05): guarda lo recibido del servidor para leerlo sin señal. */
+export async function guardarMensajes(mensajes) {
+  if (!mensajes || !mensajes.length) return;
+  await enTransaccion(async (tx) => {
+    for (const m of mensajes) {
+      await tx.runAsync(
+        'INSERT OR REPLACE INTO cache_mensaje (id_mensaje, id_pedido, fecha, datos) VALUES (?, ?, ?, ?)',
+        m.id, m.idPedido, String(m.fecha), JSON.stringify(m),
+      );
+    }
+  });
+}
+
+export async function mensajesLocal(idPedido) {
+  const db = await baseLocal();
+  return leer(await db.getAllAsync('SELECT datos FROM cache_mensaje WHERE id_pedido = ? ORDER BY fecha', idPedido));
+}
+
+/** Calificación aplicada desde la cola (CU-06 A3): el pedido guardado pasa a solo lectura. */
+export async function guardarCalificacionLocal(idPedido, calificacion) {
+  const db = await baseLocal();
+  await db.runAsync("UPDATE cache_pedido SET datos = json_set(datos, '$.calificacion', json(?)) WHERE id_pedido = ?", JSON.stringify(calificacion), idPedido);
+}
+

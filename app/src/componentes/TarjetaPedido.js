@@ -19,7 +19,7 @@ export function TarjetaPedido({ pedido, contraparte, onPress }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Pedido de ${contraparte}, ${ESTADOS_PEDIDO[pedido.estado].texto}, total ${formatoPesos(pedido.total)}`}
+      accessibilityLabel={`Pedido de ${contraparte}, ${ESTADOS_PEDIDO[pedido.estado].texto}, total ${formatoPesos(pedido.total)}${pedido.mensajesSinLeer ? `, ${pedido.mensajesSinLeer} ${pedido.mensajesSinLeer === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}` : ''}`}
       onPress={onPress}
       style={({ pressed }) => [styles.tarjeta, pressed && { opacity: 0.85 }]}
     >
@@ -31,6 +31,9 @@ export function TarjetaPedido({ pedido, contraparte, onPress }) {
       <View style={styles.chips}>
         <Chip def={ESTADOS_PEDIDO[pedido.estado]} />
         {pagoVisible ? <Chip def={ESTADOS_PAGO[pedido.estadoPago]} /> : null}
+        {pedido.mensajesSinLeer ? (
+          <Chip def={{ icono: '💬', texto: `${pedido.mensajesSinLeer} ${pedido.mensajesSinLeer === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}`, fondo: colores.mosaicos.mensajes, color: '#4A148C' }} />
+        ) : null}
       </View>
       <Text style={styles.fecha}>Último cambio: {fechaCorta(pedido.actualizadoEn)} · {pedido.franjaEntrega}</Text>
     </Pressable>

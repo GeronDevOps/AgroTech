@@ -76,6 +76,9 @@ export default function DetalleProducto() {
           valor={calificacion.total ? `★ ${String(calificacion.promedio).replace('.', ',')} (${calificacion.total})` : 'Aún sin calificaciones'}
         />
       </View>
+      {calificacion.total ? (
+        <BotonGrande titulo={`Ver opiniones (${calificacion.total})`} variante="secundario" onPress={() => router.push(`/consumidor/productor/${producto.productor.id}`)} />
+      ) : null}
 
       {producto.descripcion ? <Text style={styles.descripcion}>{producto.descripcion}</Text> : null}
 

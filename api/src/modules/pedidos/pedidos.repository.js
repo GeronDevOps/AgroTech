@@ -10,6 +10,7 @@ const SELECT_PEDIDO = `
          p.punto_entrega, p.franja_entrega, p.motivo_cancelacion, p.metodo_pago, p.estado_pago, p.version, p.actualizado_en,
          uc.nombres AS c_nombres, uc.apellidos AS c_apellidos,
          up.nombres AS p_nombres, up.apellidos AS p_apellidos, up.municipio AS p_municipio,
+         cal.puntuacion AS cal_puntuacion, cal.comentario AS cal_comentario, cal.fecha AS cal_fecha,
          COALESCE((SELECT json_agg(json_build_object(
                      'idProducto', d.id_producto, 'nombre', pr.nombre, 'unidad', pr.unidad_medida,
                      'cantidad', d.cantidad, 'precioUnitario', d.precio_unitario, 'subtotal', d.subtotal) ORDER BY pr.nombre)
@@ -17,7 +18,8 @@ const SELECT_PEDIDO = `
                    WHERE d.id_pedido = p.id_pedido), '[]'::json) AS items
   FROM pedido p
   JOIN usuario uc ON uc.id_usuario = p.id_consumidor
-  JOIN usuario up ON up.id_usuario = p.id_productor`;
+  JOIN usuario up ON up.id_usuario = p.id_productor
+  LEFT JOIN calificacion cal ON cal.id_pedido = p.id_pedido`;
 
 const ACTIVOS = "('PENDIENTE', 'ACEPTADO', 'EN_CAMINO')";
 
@@ -130,6 +132,17 @@ function createPedidosRepository({ pool }) {
         [idUsuario],
       );
       return rows;
+    },
+
+    /** Mensajes sin leer de la contraparte, por pedido (CU-05 paso 4). */
+    async sinLeer(ids, idUsuario) {
+      if (!ids.length) return {};
+      const { rows } = await pool.query(
+        `SELECT id_pedido, count(*)::int AS n FROM mensaje
+         WHERE id_pedido = ANY($1::uuid[]) AND id_emisor <> $2 AND NOT leido GROUP BY id_pedido`,
+        [ids, idUsuario],
+      );
+      return Object.fromEntries(rows.map((r) => [r.id_pedido, r.n]));
     },
 
     /** CU-13 A3: pedidos "Pendiente" sin respuesta después de `horas`. */

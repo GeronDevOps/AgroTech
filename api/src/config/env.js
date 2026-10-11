@@ -69,6 +69,8 @@ const config = Object.freeze({
     urlRetorno: process.env.WOMPI_URL_RETORNO || '',                 // p. ej. https://api.agrotech.co/api/v1/pagos/retorno
     retornoApp: process.env.WOMPI_RETORNO_APP || 'agrotech://pago',  // a dónde redirige /pagos/retorno
   }),
+  // RF-16a: ruta al JSON de la cuenta de servicio de Firebase (FCM HTTP v1). Vacía = avisos push desactivados.
+  fcmCredenciales: process.env.FCM_CREDENCIALES || '',
   horasCancelacionAutomatica: toInt('HORAS_CANCELACION', process.env.HORAS_CANCELACION, 48),
   migrationsDir: process.env.MIGRATIONS_DIR
     ? path.resolve(process.env.MIGRATIONS_DIR)

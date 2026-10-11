@@ -8,6 +8,7 @@ import { api } from '../../api/cliente';
 import { Aviso } from '../../componentes/Aviso';
 import { pedidosLocal } from '../../local/cache';
 import { useSincronizacion } from '../../sync/SincronizacionContext';
+import { useTiempoReal } from '../../tiempoReal/TiempoRealContext';
 import { colores, espacio, texto } from '../../tema/tema';
 
 /** Inicio del productor (wireframe 1): cada tarea crítica queda a un toque (RNF-02). */
@@ -16,6 +17,8 @@ export default function InicioProductor() {
   const { usuario, cerrarSesion } = useSesion();
   const sync = useSincronizacion();
   const [pendientes, setPendientes] = useState(0);
+  const [sinLeer, setSinLeer] = useState(0);
+  const { versionPedidos } = useTiempoReal();
   const [confirmarSalida, setConfirmarSalida] = useState(false);
 
   // Al volver al inicio se cuentan los pedidos por atender (RF-13). Sin red, con la copia del teléfono.
@@ -24,10 +27,15 @@ export default function InicioProductor() {
     api.pedidos('activos')
       .then((r) => r.pedidos)
       .catch((err) => (err.codigo === 'SIN_CONEXION' ? pedidosLocal({ soloActivos: true }) : null))
-      .then((lista) => { if (vigente && lista) setPendientes(lista.filter((p) => p.estado === 'PENDIENTE').length); })
+      .then((lista) => {
+        if (!vigente || !lista) return;
+        setPendientes(lista.filter((p) => p.estado === 'PENDIENTE').length);
+        setSinLeer(lista.reduce((n, p) => n + (p.mensajesSinLeer || 0), 0));
+      })
       .catch(() => {});
     return () => { vigente = false; };
-  }, []));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- versionPedidos (tiempo real) solo dispara la recarga
+  }, [versionPedidos]));
 
   const enCola = sync.pendientes + sync.conError;
   const detalleProductos = sync.conError ? `${sync.conError} con error` : sync.pendientes ? `${sync.pendientes} sin sincronizar` : null;
@@ -52,7 +60,10 @@ export default function InicioProductor() {
           detalle={pendientes ? `${pendientes} por atender` : null} alerta={pendientes > 0}
           onPress={() => router.push('/productor/pedidos')} />
         <Mosaico icono="▲" titulo="Mis ventas" color={colores.mosaicos.ventas} onPress={() => router.push('/productor/ventas')} />
-        <Mosaico icono="✉" titulo="Mensajes" color={colores.mosaicos.mensajes} onPress={() => router.push('/productor/mensajes')} />
+        <Mosaico
+          icono="✉" titulo="Mensajes" color={colores.mosaicos.mensajes}
+          detalle={sinLeer ? `${sinLeer} sin leer` : null} alerta={sinLeer > 0}
+          onPress={() => router.push('/productor/mensajes')} />
       </View>
       {confirmarSalida ? (
         <Aviso
