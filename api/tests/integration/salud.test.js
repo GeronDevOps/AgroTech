@@ -1,6 +1,8 @@
 'use strict';
 
+const fs = require('node:fs');
 const request = require('supertest');
+const config = require('../../src/config/env');
 const { pool } = require('../../src/db/pool');
 const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
@@ -21,7 +23,8 @@ describe('GET /api/v1/salud', () => {
     expect(res.status).toBe(200);
     expect(res.body.estado).toBe('ok');
     expect(res.body.baseDeDatos.estado).toBe('ok');
-    expect(res.body.baseDeDatos.migracion).toBe('002');
+    const ultima = fs.readdirSync(config.migrationsDir).filter((f) => /^\d{3}_/.test(f)).sort().pop().slice(0, 3);
+    expect(res.body.baseDeDatos.migracion).toBe(ultima);
   });
 
   test('incluye cabeceras de seguridad y oculta X-Powered-By', async () => {

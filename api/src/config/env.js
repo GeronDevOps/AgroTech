@@ -59,6 +59,17 @@ const config = Object.freeze({
     maxBytes: 300 * 1024, // RNF-09: foto comprimida ≤ 300 KB
     maxBytesMiniatura: 40 * 1024, // 20 miniaturas ≈ 400 KB → primera página ≤ 500 KB (RNF-09)
   }),
+  wompi: Object.freeze({
+    // ADR-001. En pruebas automáticas se usan valores ficticios; en desarrollo y AWS van en api/.env.
+    llavePublica: process.env.WOMPI_LLAVE_PUBLICA || (isTest ? 'pub_test_agrotech_pruebas' : ''),
+    secretoIntegridad: process.env.WOMPI_SECRETO_INTEGRIDAD || (isTest ? 'test_integrity_agrotech_pruebas' : ''),
+    secretoEventos: process.env.WOMPI_SECRETO_EVENTOS || (isTest ? 'test_events_agrotech_pruebas' : ''),
+    ambiente: process.env.WOMPI_AMBIENTE || 'test',                 // "test" = sandbox, "prod" = producción
+    urlCheckout: process.env.WOMPI_URL_CHECKOUT || 'https://checkout.wompi.co/p/',
+    urlRetorno: process.env.WOMPI_URL_RETORNO || '',                 // p. ej. https://api.agrotech.co/api/v1/pagos/retorno
+    retornoApp: process.env.WOMPI_RETORNO_APP || 'agrotech://pago',  // a dónde redirige /pagos/retorno
+  }),
+  horasCancelacionAutomatica: toInt('HORAS_CANCELACION', process.env.HORAS_CANCELACION, 48),
   migrationsDir: process.env.MIGRATIONS_DIR
     ? path.resolve(process.env.MIGRATIONS_DIR)
     : path.resolve(__dirname, '../../../db/migrations'),

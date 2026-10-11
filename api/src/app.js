@@ -32,7 +32,9 @@ function createApp(deps) {
   if (almacenFotos.tipo === 'local') {
     app.use('/fotos', express.static(almacenFotos.dir, { immutable: true, maxAge: '30d', index: false }));
   }
-  app.use('/api/v1', apiRoutes({ ...deps, almacenFotos }));
+  const api = apiRoutes({ ...deps, almacenFotos });
+  app.use('/api/v1', api);
+  app.locals.servicios = api.servicios;   // la tarea programada de server.js usa pedidosService
 
   app.use(notFound);
   app.use(errorHandler);
