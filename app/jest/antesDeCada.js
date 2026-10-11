@@ -6,4 +6,6 @@ beforeEach(() => {
   global.__red?.reiniciar(); // el simulador de red se crea al primer uso
   global.__uuids = 0;
   global.__archivosBorrados = [];
+  global.__ws.reiniciar();
+  if (global.__push) global.__push.permiso = 'granted';
 });

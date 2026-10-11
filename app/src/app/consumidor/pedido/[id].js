@@ -5,6 +5,10 @@ import * as WebBrowser from 'expo-web-browser';
 import { BotonGrande } from '../../../componentes/BotonGrande';
 import { Aviso } from '../../../componentes/Aviso';
 import { DetallePedido } from '../../../componentes/DetallePedido';
+import { BotonChat } from '../../../componentes/BotonChat';
+import { CalificarPedido } from '../../../componentes/Calificacion';
+import { useSincronizacion } from '../../../sync/SincronizacionContext';
+import { useTiempoReal } from '../../../tiempoReal/TiempoRealContext';
 import { api } from '../../../api/cliente';
 import { guardarPedidos, pedidoLocal } from '../../../local/cache';
 import { AvisoSinSenal } from '../../../componentes/AvisoSinSenal';
@@ -24,10 +28,15 @@ export default function PedidoConsumidor() {
   const { enLinea } = useConexion();
   const [pedido, setPedido] = useState(null);
   const [desdeCache, setDesdeCache] = useState(false);
+  const [calificacionEnCola, setCalificacionEnCola] = useState(null);
+  const { operaciones, version: versionSync } = useSincronizacion();
+  const { versionPedidos } = useTiempoReal();
   const [aviso, setAviso] = useState(nuevo ? { tipo: 'info', mensaje: '✓ Pedido confirmado. El productor ya recibió el aviso.' } : null);
   const [ocupado, setOcupado] = useState(false);
 
   const cargar = useCallback(async () => {
+    const ops = await operaciones().catch(() => []);
+    setCalificacionEnCola(ops.find((o) => o.entidad === 'CALIFICACION' && o.idEntidad === id) || null);
     try {
       const r = await api.pedido(id);
       setPedido(r.pedido);
@@ -44,10 +53,12 @@ export default function PedidoConsumidor() {
       }
       return null;
     }
-  }, [id]);
+  }, [id, operaciones]);
 
   // Se consulta al abrir y cada vez que se vuelve a la pantalla (p. ej. al regresar de la página de pago).
-  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+  // También cuando el productor cambia el estado (tiempo real) o termina una sincronización.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- las versiones solo disparan la recarga
+  useFocusEffect(useCallback(() => { cargar(); }, [cargar, versionPedidos, versionSync]));
 
   async function pagar() {
     setOcupado(true);
@@ -104,6 +115,8 @@ export default function PedidoConsumidor() {
           ) : null}
         </View>
       ) : null}
+      {pedido.estado === 'ENTREGADO' ? <CalificarPedido pedido={pedido} enCola={calificacionEnCola} onCalificado={cargar} /> : null}
+      <BotonChat pedido={pedido} rol="CONSUMIDOR" contraparte={pedido.productor.nombre} />
       <DetallePedido pedido={pedido} contraparte={pedido.productor.nombre} />
     </ScrollView>
   );

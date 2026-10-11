@@ -1,5 +1,5 @@
 import { api } from '../api/cliente';
-import { aplicarPull, guardarProductos } from '../local/cache';
+import { aplicarPull, guardarCalificacionLocal, guardarMensajes, guardarProductos } from '../local/cache';
 import { guardarMeta, leerMeta } from '../local/baseLocal';
 import { borrarFotosCola } from '../local/archivosCola';
 import {
@@ -9,7 +9,7 @@ import {
 /**
  * Motor de sincronización (CU-17 pasos 3 y 4; protocolo de la Entrega 3).
  * 1) Envía la cola en orden cronológico: las publicaciones con foto van a POST /productos (idempotente por id)
- *    y las demás operaciones, en lotes consecutivos, a POST /sync/push.
+ *    y las demás (ediciones, mensajes del chat, calificaciones), en lotes consecutivos, a POST /sync/push.
  * 2) Descarga los cambios con GET /sync/pull desde la última marca y actualiza la copia local.
  * Un fallo de red detiene el envío para conservar el orden; se reintenta en el siguiente disparo.
  */
@@ -67,6 +67,8 @@ async function enviarLote(lote, resumen) {
     if (!op) continue;
     if (r.resultado === 'PUBLICADO' || r.resultado === 'YA_APLICADA') {
       if (r.producto) await guardarProductos([r.producto]);
+      if (r.mensaje) await guardarMensajes([r.mensaje]);
+      if (r.calificacion && op.entidad === 'CALIFICACION') await guardarCalificacionLocal(op.idEntidad, r.calificacion);
       await quitarPublicada(op.id, { idEntidad: op.idEntidad, versionNueva: r.producto && r.producto.version });
       resumen.publicadas += 1;
     } else if (r.resultado === 'CON_ERROR') {
@@ -86,13 +88,14 @@ async function enviarLote(lote, resumen) {
 export async function enviarCola(resumen) {
   const ops = await pendientesEnOrden();
   let i = 0;
+  const conFoto = (op) => op.entidad === 'PRODUCTO' && op.tipo === 'CREAR';
   while (i < ops.length) {
-    if (ops[i].tipo === 'CREAR') {
+    if (conFoto(ops[i])) {
       if (!(await enviarPublicacion(ops[i], resumen))) return false;
       i += 1;
     } else {
       const lote = [];
-      while (i < ops.length && ops[i].tipo !== 'CREAR' && lote.length < LOTE) lote.push(ops[i++]);
+      while (i < ops.length && !conFoto(ops[i]) && lote.length < LOTE) lote.push(ops[i++]);
       if (!(await enviarLote(lote, resumen))) return false;
     }
   }

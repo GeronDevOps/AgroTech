@@ -8,7 +8,8 @@ import * as SQLite from 'expo-sqlite';
  * - cache_producto / cache_pedido: copia de lo último recibido del servidor. Las columnas de filtro
  *   (municipio, categoría, precio…) se derivan de `datos` para filtrar el catálogo sin red.
  * - carrito_local: el carrito persiste aunque se cierre la app (CU-04 sin red).
- * - meta_sync: marca de la última sincronización, clave de idempotencia del carrito y versión del esquema.
+ * - cache_mensaje: historial del chat por pedido (CU-05), para leerlo sin señal.
+ * - meta_sync: marca de la última sincronización, clave del carrito, último panel de ventas y versión del esquema.
  * El token JWT NO se guarda aquí (almacén seguro del sistema).
  */
 const NOMBRE = 'agrotech-local.db';
@@ -57,6 +58,14 @@ const MIGRACIONES = [
      cantidad REAL NOT NULL,
      agregado_en TEXT NOT NULL
    );`,
+  // Versión 2 (AGRO-11): historial del chat para leerlo sin señal (CU-05).
+  `CREATE TABLE IF NOT EXISTS cache_mensaje (
+     id_mensaje TEXT PRIMARY KEY NOT NULL,
+     id_pedido TEXT NOT NULL,
+     fecha TEXT NOT NULL,
+     datos TEXT NOT NULL
+   );
+   CREATE INDEX IF NOT EXISTS ix_cache_mensaje_pedido ON cache_mensaje (id_pedido, fecha);`,
 ];
 
 let apertura = null;
@@ -130,7 +139,7 @@ export async function guardarMeta(clave, valor) {
 /** Al cerrar sesión: el teléfono puede ser compartido, no quedan datos del usuario anterior. */
 export async function borrarDatosLocales() {
   await enTransaccion(async (tx) => {
-    await tx.execAsync(`DELETE FROM cola_operaciones; DELETE FROM cache_producto; DELETE FROM cache_pedido;
+    await tx.execAsync(`DELETE FROM cola_operaciones; DELETE FROM cache_producto; DELETE FROM cache_pedido; DELETE FROM cache_mensaje;
                         DELETE FROM carrito_local; DELETE FROM meta_sync WHERE clave <> 'version_esquema';`);
   });
 }

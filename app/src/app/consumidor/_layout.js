@@ -12,6 +12,9 @@ export default function ConsumidorLayout() {
         <Stack.Screen name="carrito" options={{ title: 'Mi carrito' }} />
         <Stack.Screen name="pedidos" options={{ title: 'Mis pedidos' }} />
         <Stack.Screen name="pedido/[id]" options={{ title: 'Pedido' }} />
+        <Stack.Screen name="chat/[id]" options={{ title: 'Chat del pedido' }} />
+        <Stack.Screen name="mensajes" options={{ title: 'Mensajes' }} />
+        <Stack.Screen name="productor/[id]" options={{ title: 'Opiniones' }} />
       </Stack>
     </CarritoProvider>
   );

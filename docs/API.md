@@ -25,6 +25,13 @@ Autenticación: cabecera `Authorization: Bearer <token>` en las rutas marcadas c
 | `POST /pagos/wompi/eventos` | Firma Wompi (checksum) | CU-22 · RF-21 | 4 | Implementada ([ADR-001](decisiones/ADR-001-pasarela-de-pago.md)) |
 | `GET /pagos/retorno` | Pública | CU-22 | 4 | Implementada |
 | `POST /sync/push` | JWT | CU-17 · RF-17 | 5 | Implementada |
+| `GET /pedidos/{id}/mensajes`, `POST /pedidos/{id}/mensajes` | JWT · partes | CU-05 · RF-05 | 6 | Implementada |
+| `POST /pedidos/{id}/mensajes/leidos`, `GET /mensajes` | JWT | CU-05 | 6 | Implementada |
+| `POST /pedidos/{id}/calificacion` | JWT · consumidor del pedido | CU-06 · RF-06 | 6 | Implementada |
+| `GET /productores/{id}/calificaciones` | JWT | CU-06 paso 4 | 6 | Implementada |
+| `GET /ventas` | JWT · productor | CU-07 · RF-07 | 6 | Implementada |
+| `POST /dispositivos`, `DELETE /dispositivos/{token}` | JWT | CU-16 · RF-16a | 6 | Implementada |
+| `WS /ws` | JWT (primer mensaje) | CU-04, 05, 13 (tiempo real) | 6 | Implementada |
 | `GET /sync/pull` | JWT | CU-17 · RF-17 | 5 | Implementada |
 
 ---
@@ -253,7 +260,8 @@ Cuerpo: `{ "operaciones": [{ "idOperacion": uuid, "tipo": "PRODUCTO.EDITAR", "id
 | `tipo` | Rol | `datos` | Equivale a |
 |---|---|---|---|
 | `PRODUCTO.EDITAR` | Productor | `{ precio?, stock?, version }` | `PATCH /productos/{id}` |
-| `MENSAJE.CREAR`, `CALIFICACION.CREAR` | — | — | Fase 6 |
+| `MENSAJE.CREAR` | Partes del pedido | `{ idPedido, contenido }` · `idEntidad` = id del mensaje | `POST /pedidos/{id}/mensajes` |
+| `CALIFICACION.CREAR` | Consumidor | `{ puntuacion, comentario? }` · `idEntidad` = id del pedido | `POST /pedidos/{id}/calificacion` |
 
 Respuesta `200 { resultados: [{ idOperacion, resultado, producto?, error? }] }`, en el mismo orden:
 
@@ -280,4 +288,64 @@ Parámetros: `desde` (ISO; marca anterior) y `despuesDe` (cursor). Respuesta:
 - Con `desde`: lo cambiado después de `desde − 2 min` (solapamiento para transacciones que confirmaron tarde); `retirados` = ids que ya no deben estar en la copia.
 - Productos paginados de a 500 por cursor exacto `(actualizado_en, id)` con microsegundos (`siguiente: { desde, despuesDe }`); pedidos y retirados solo en la primera página.
 - La app guarda `servidorEn` de la primera página como nueva marca.
+
+---
+
+## Chat por pedido (CU-05 · RF-05)
+
+Mensaje: `{ id, idPedido, idEmisor, contenido, fecha, leido, leidoEn }`. Solo las partes del pedido (404 para los demás).
+
+| Ruta | Detalle |
+|---|---|
+| `GET /pedidos/{id}/mensajes?despuesDe=ISO` | `{ abierto, estadoPedido, mensajes }` en orden cronológico (últimos 200) |
+| `POST /pedidos/{id}/mensajes` | `{ id: uuid del teléfono, contenido 1–500 }` → 201; reenvío con el mismo id → 200 (A1). `409 CHAT_CERRADO` con el pedido entregado o cancelado (A2); `400` vacío o > 500 (A3); `409 ID_EN_USO` |
+| `POST /pedidos/{id}/mensajes/leidos` | Marca leídos los mensajes de la contraparte → `{ leidos }` y avisa al emisor por WebSocket (paso 4) |
+| `GET /mensajes` | `{ conversaciones: [{ idPedido, estadoPedido, abierto, contraparte, ultimoMensaje, sinLeer }] }` |
+
+`GET /pedidos` y `GET /pedidos/{id}` incluyen `mensajesSinLeer` y `calificacion`.
+Un disparador en la BD rechaza mensajes de pedidos cerrados o de quien no es parte (segunda barrera).
+
+## Calificación (CU-06 · RF-06)
+
+`POST /pedidos/{id}/calificacion` `{ puntuacion: 1–5 entero, comentario?: ≤ 300 }` → `201 { calificacion, reputacion: { promedio, total } }`.
+
+| HTTP | Código | Caso |
+|---|---|---|
+| 409 | `PEDIDO_NO_ENTREGADO` | A1 |
+| 409 | `YA_CALIFICADO` | A2; `detalles.calificacion` trae la existente |
+| 403 / 404 | `SIN_PERMISO` / `NO_ENCONTRADO` | Productor / otro consumidor |
+
+`GET /productores/{id}/calificaciones?pagina=` → `{ productor, reputacion, calificaciones: [{ puntuacion, comentario, fecha, consumidor: 'Andrés C.' }], hayMas }` (20 por página).
+
+## Panel de ventas (CU-07 · RF-07)
+
+`GET /ventas?periodo=semana|mes|mes_anterior|anio` (por defecto `mes`) o `?desde=AAAA-MM-DD&hasta=AAAA-MM-DD`.
+
+- Una venta cuenta el **día en que el pedido pasó a ENTREGADO**, en hora de Colombia (UTC−5), por el total pactado (CA-11).
+- Respuesta: `{ periodo { desde, hasta, agrupacion: dia|mes }, correccion, resumen { pedidosEntregados, ingresos, ticketPromedio }, serie [{ fecha, pedidos, ingresos }], topProductos (5), enCurso { pedidos, valor }, generadoEn }`.
+- A3: fechas invertidas se intercambian, el futuro se recorta a hoy y más de 366 días se limita; `correccion` explica el ajuste. Fecha mal escrita → 400.
+- Serie diaria hasta 62 días; mensual en rangos más largos.
+
+## Dispositivos y avisos push (CU-16 · RF-16a)
+
+- `POST /dispositivos { token (FCM), plataforma: 'ANDROID' }` → 201 nuevo / 200 existente; un token pertenece a una sola cuenta (se reasigna).
+- `DELETE /dispositivos/{token}` → 204 (al cerrar sesión).
+- Avisos: **pedido nuevo** (al productor) y **pedido pagado** (RF-21). Se registran en `notificacion` y se envían por FCM HTTP v1 con la cuenta de servicio de `FCM_CREDENCIALES`.
+  - Falla temporal → reintento a 1, 2, 4 y 8 min; al 5.º intento `FALLIDA` (CU-04 A4). Token vencido → dispositivo `INVALIDO`. Sin teléfonos → `SIN_DISPOSITIVO` (A1: el aviso llega dentro de la app).
+  - Sin `FCM_CREDENCIALES` el push está desactivado y no se registra nada.
+
+## WebSocket `/ws` (tiempo real)
+
+1. Conectar a `wss://<api>/ws` y en los primeros 5 s enviar `{ "tipo": "autenticar", "token": "<JWT>" }` → `{ "tipo": "listo" }`. Sin autenticar: cierre `4001`; token inválido: `4002`.
+2. El servidor solo envía eventos (los cambios entran por la API REST):
+
+| Evento | Para | Cuándo |
+|---|---|---|
+| `{ tipo: 'pedido_nuevo', idPedido }` | Productor | CU-04 paso 4 (CA-06) |
+| `{ tipo: 'pedido_actualizado', idPedido, estado? , estadoPago? }` | Ambas partes | Cambio de estado (CA-08) o de pago |
+| `{ tipo: 'mensaje', mensaje }` | Ambas partes | Mensaje nuevo (CA-09) |
+| `{ tipo: 'mensajes_leidos', idPedido, idLector, ids }` | Ambas partes | CU-05 paso 4 |
+| `{ tipo: 'calificacion', idPedido, reputacion }` | Productor | CA-10 |
+
+Latido cada 30 s (ping/pong); la app reconecta con espera creciente hasta 30 s.
 

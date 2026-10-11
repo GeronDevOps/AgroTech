@@ -70,3 +70,26 @@ jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(async (url, retorno) => ({ type: 'success', url: `${retorno}?id=tx-1` })),
   maybeCompleteAuthSession: jest.fn(),
 }));
+
+// Servidor de tiempo real simulado (global.__ws.emitir(evento)).
+require('./jest/wsSimulado');
+
+// Notificaciones push: permiso concedido y token FCM de prueba; global.__push.tocar(datos) simula tocar un aviso.
+jest.mock('expo-notifications', () => {
+  const oyentes = new Set();
+  global.__push = {
+    permiso: 'granted',
+    tocar: (data) => oyentes.forEach((f) => f({ notification: { request: { content: { data } } } })),
+  };
+  return {
+    AndroidImportance: { HIGH: 4 },
+    setNotificationHandler: jest.fn(),
+    setNotificationChannelAsync: jest.fn(async () => null),
+    getPermissionsAsync: jest.fn(async () => ({ status: global.__push.permiso })),
+    requestPermissionsAsync: jest.fn(async () => ({ status: global.__push.permiso })),
+    getDevicePushTokenAsync: jest.fn(async () => ({ type: 'android', data: 'fcm-token-de-prueba-0123456789:APA91b' })),
+    getLastNotificationResponseAsync: jest.fn(async () => null),
+    addNotificationResponseReceivedListener: jest.fn((f) => { oyentes.add(f); return { remove: () => oyentes.delete(f) }; }),
+  };
+});
+

@@ -22,6 +22,9 @@ export class ErrorApi extends Error {
 }
 
 let tokenActual = null;
+
+/** El canal de tiempo real (WebSocket) se autentica con el mismo token. */
+export const tokenVigente = () => tokenActual;
 let alRechazar = null;
 
 /** Lo llama la sesión al iniciar o cerrar sesión. */
@@ -115,6 +118,16 @@ export const api = {
   cambiarEstadoPedido: (id, cuerpo) => solicitar(`/pedidos/${id}/estado`, { metodo: 'PATCH', cuerpo }),
   iniciarPago: (id) => solicitar(`/pedidos/${id}/pago`, { metodo: 'POST' }),
   cambiarAContraEntrega: (id) => solicitar(`/pedidos/${id}/pago`, { metodo: 'PATCH', cuerpo: { metodoPago: 'CONTRA_ENTREGA' } }),
+  // Chat, calificaciones, ventas y dispositivos (AGRO-11, 12, 13, 20)
+  mensajes: (idPedido, despuesDe) => solicitar(`/pedidos/${idPedido}/mensajes${consulta({ despuesDe })}`),
+  enviarMensaje: (idPedido, mensaje) => solicitar(`/pedidos/${idPedido}/mensajes`, { metodo: 'POST', cuerpo: mensaje }),
+  marcarLeidos: (idPedido) => solicitar(`/pedidos/${idPedido}/mensajes/leidos`, { metodo: 'POST' }),
+  conversaciones: () => solicitar('/mensajes'),
+  calificar: (idPedido, cuerpo) => solicitar(`/pedidos/${idPedido}/calificacion`, { metodo: 'POST', cuerpo }),
+  opiniones: (idProductor, pagina = 1) => solicitar(`/productores/${idProductor}/calificaciones${consulta({ pagina })}`),
+  ventas: (params) => solicitar(`/ventas${consulta(params)}`),
+  registrarDispositivo: (token) => solicitar('/dispositivos', { metodo: 'POST', cuerpo: { token, plataforma: 'ANDROID' } }),
+  borrarDispositivo: (token) => solicitar(`/dispositivos/${encodeURIComponent(token)}`, { metodo: 'DELETE', tiempoEspera: 4000 }),
   // Sincronización sin conexión (AGRO-10)
   syncPush: (operaciones) => solicitar('/sync/push', { metodo: 'POST', cuerpo: { operaciones }, tiempoEspera: 30000 }),
   syncPull: (params = {}) => solicitar(`/sync/pull${consulta(params)}`, { tiempoEspera: 30000 }),

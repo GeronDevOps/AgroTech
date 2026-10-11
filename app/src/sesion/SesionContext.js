@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { api, alRechazarSesion, establecerToken } from '../api/cliente';
 import { borrarSesion, guardarSesion, leerSesion } from './almacen';
 import { borrarDatosLocales } from '../local/baseLocal';
+import { desregistrarPush } from '../notificaciones/push';
 
 /**
  * Sesión del usuario (AGRO-5 · CU-01, CU-21).
@@ -20,6 +21,7 @@ export function SesionProvider({ children }) {
   const [cargando, setCargando] = useState(true);
 
   const cerrarSesion = useCallback(async () => {
+    await desregistrarPush(); // con el token aún vigente; sin señal no bloquea la salida
     establecerToken(null);
     setSesion(null);
     await borrarSesion();

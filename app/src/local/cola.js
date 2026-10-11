@@ -74,6 +74,12 @@ export async function encolarEdicion(idProducto, cambios, version) {
   });
 }
 
+/** CU-05 A1 y CU-06 A3: mensaje o calificación hechos sin señal (JSON, van por /sync/push). */
+export async function encolarCreacion(entidad, idEntidad, payload) {
+  const db = await baseLocal();
+  return insertar(db, { tipo: 'CREAR', entidad, idEntidad, payload });
+}
+
 /** Operaciones por enviar, en orden cronológico (CU-17 paso 3). */
 export async function pendientesEnOrden() {
   const db = await baseLocal();

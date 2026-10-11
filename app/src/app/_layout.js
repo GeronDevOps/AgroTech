@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ROLES, SesionProvider, useSesion } from '../sesion/SesionContext';
 import { SincronizacionProvider } from '../sync/SincronizacionContext';
+import { TiempoRealProvider } from '../tiempoReal/TiempoRealContext';
+import { useNotificacionesPush } from '../notificaciones/push';
 import { colores } from '../tema/tema';
 
 /**
@@ -14,15 +16,18 @@ export default function RootLayout() {
   return (
     <SesionProvider>
       <SincronizacionProvider>
-        <StatusBar style="dark" />
-        <Navegador />
+        <TiempoRealProvider>
+          <StatusBar style="dark" />
+          <Navegador />
+        </TiempoRealProvider>
       </SincronizacionProvider>
     </SesionProvider>
   );
 }
 
 function Navegador() {
-  const { rol, cargando } = useSesion();
+  const { rol, cargando, usuario } = useSesion();
+  useNotificacionesPush(usuario);
   return (
     <View style={styles.raiz}>
       <Stack screenOptions={{ headerShown: false }}>

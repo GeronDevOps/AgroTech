@@ -1,5 +1,6 @@
-import { EnConstruccion } from '../../componentes/EnConstruccion';
+import { ListaConversaciones } from '../../componentes/ListaConversaciones';
 
+/** CU-05 · Bandeja de mensajes: un chat por pedido. */
 export default function Mensajes() {
-  return <EnConstruccion titulo="Mensajes" tarjeta="AGRO-11 (RF-05)" fase="la Fase 6" />;
+  return <ListaConversaciones rol="PRODUCTOR" />;
 }
