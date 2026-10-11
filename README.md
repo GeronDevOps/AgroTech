@@ -65,3 +65,14 @@ Resumen de [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md):
 2. Rama `feature/AGRO-<n>-descripcion` desde `develop`.
 3. Commits con el formato `AGRO-<n>: descripción breve`.
 4. Pull Request hacia `develop` con la integración continua en verde y la revisión de otro integrante.
+
+## Integración continua (AGRO-4)
+
+`.github/workflows/ci.yml` se ejecuta en cada push y PR hacia `develop` y `main`.
+
+| Trabajo | Pasos | Entorno |
+|---|---|---|
+| `api` | `npm ci` → lint → `npm run migrate` → `npm test` | Node 22 + servicio `postgis/postgis:17-3.5` |
+| `app` | `npm ci` → lint → `npm test` → `expo export --platform android` | Node 22 |
+
+Plan de fases: [docs/PLAN_DESARROLLO.md](docs/PLAN_DESARROLLO.md).
