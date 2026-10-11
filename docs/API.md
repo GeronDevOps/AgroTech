@@ -16,8 +16,14 @@ Autenticación: cabecera `Authorization: Bearer <token>` en las rutas marcadas c
 | `GET /productos/{id}` | JWT | CU-03 | 3 | Implementada |
 | `POST /productos` | JWT · productor | CU-02 · RF-02 | 3 | Implementada |
 | `PATCH /productos/{id}` | JWT · productor dueño | CU-10 · RF-10a | 3 | Implementada |
-| `POST /pedidos`, `GET /pedidos`, `PATCH /pedidos/{id}/estado` | JWT | CU-04, 13, 15 | 4 | Pendiente |
-| `POST /pedidos/{id}/pago`, `POST /pagos/wompi/eventos` | JWT / firma Wompi | CU-22 · RF-21 | 4 | Diseñada ([ADR-001](decisiones/ADR-001-pasarela-de-pago.md)) |
+| `POST /pedidos` | JWT · consumidor | CU-04 · RF-04 | 4 | Implementada |
+| `GET /pedidos` | JWT | CU-13, CU-15 · RF-13, RF-15a | 4 | Implementada |
+| `GET /pedidos/{id}` | JWT · partes del pedido | CU-13, CU-15 | 4 | Implementada |
+| `PATCH /pedidos/{id}/estado` | JWT · productor del pedido | CU-13 · RF-13 | 4 | Implementada |
+| `POST /pedidos/{id}/pago` | JWT · consumidor del pedido | CU-22 · RF-21 | 4 | Implementada |
+| `PATCH /pedidos/{id}/pago` | JWT · consumidor del pedido | CU-22 A1 | 4 | Implementada |
+| `POST /pagos/wompi/eventos` | Firma Wompi (checksum) | CU-22 · RF-21 | 4 | Implementada ([ADR-001](decisiones/ADR-001-pasarela-de-pago.md)) |
+| `GET /pagos/retorno` | Pública | CU-22 | 4 | Implementada |
 
 ---
 
@@ -138,3 +144,95 @@ Respuesta: `{ productos: [...], pagina, tamano, total, hayMas }`.
 
 - `/{id}`: cualquier usuario ve `ACTIVA` y `AGOTADA`; `PAUSADA` e `INACTIVA` solo su dueño.
 - `/mios`: todas las publicaciones del productor salvo las retiradas, de la más recién modificada a la más antigua.
+
+---
+
+## Pedido (representación pública)
+
+```json
+{
+  "id": "uuid", "clave": "uuid", "estado": "PENDIENTE",
+  "metodoPago": "EN_LINEA", "estadoPago": "PENDIENTE",
+  "total": 170000, "puntoEntrega": "Parque principal", "franjaEntrega": "Mañana",
+  "motivoCancelacion": null, "fecha": "ISO-8601", "actualizadoEn": "ISO-8601", "version": 1,
+  "consumidor": { "id": "uuid", "nombre": "Andrés C." },
+  "productor": { "id": "uuid", "nombre": "Rosa P.", "municipio": "Pamplonita" },
+  "items": [{ "idProducto": "uuid", "nombre": "Papa pastusa", "unidad": "bulto", "cantidad": 2, "precioUnitario": 85000, "subtotal": 170000 }]
+}
+```
+
+- `estado`: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO`, o `CANCELADO` (transiciones validadas también por trigger en la BD).
+- `estadoPago`: `NO_APLICA` (contra entrega), `PENDIENTE`, `APROBADO`, `RECHAZADO`, `ANULADO`.
+- `GET /pedidos/{id}` agrega `historial` (`[{ estadoAnterior, estadoNuevo, fecha }]`) y `pago` (último intento o `null`).
+
+## POST /pedidos · CU-04
+
+Cabecera obligatoria `Idempotency-Key: <uuid>` (la genera el carrito y se conserva hasta que el pedido se confirma, RNF-10).
+
+Cuerpo: `{ "items": [{ "idProducto", "cantidad" }], "puntoEntrega", "franjaEntrega": "MANANA"|"TARDE", "metodoPago"?: "CONTRA_ENTREGA"|"EN_LINEA" }`.
+
+- Se crea **un pedido por productor** (CU-04 A3) en una sola transacción.
+- Productos bloqueados con `SELECT … ORDER BY id FOR UPDATE`; el stock se descuenta en la misma transacción (CP-07).
+- Precio pactado = precio vigente al confirmar (`detalle_pedido.precio_unitario`, CA-13).
+
+| HTTP | Código | Caso |
+|---|---|---|
+| 201 | — | `{ clave, pedidos: [...] }` creados |
+| 200 | — | Reintento con la misma clave del mismo consumidor: devuelve los mismos pedidos (CP-16) |
+| 400 | `DATOS_INVALIDOS` | Falta la clave o no es UUID; ítems, punto o franja inválidos |
+| 409 | `STOCK_INSUFICIENTE` | `detalles.productos: [{ idProducto, nombre, disponible, solicitado }]` |
+| 409 | `CLAVE_EN_USO` | La clave pertenece a otro usuario |
+
+## GET /pedidos
+
+Parámetro `estado`: `activos` (por defecto: `PENDIENTE`, `ACEPTADO`, `EN_CAMINO`) o `todos`. Devuelve `{ pedidos }` del consumidor o del productor según el rol, del más reciente al más antiguo.
+
+## PATCH /pedidos/{id}/estado · CU-13
+
+Cuerpo: `{ "estado": "ACEPTADO"|"EN_CAMINO"|"ENTREGADO"|"CANCELADO", "version", "motivo"? }`.
+
+| HTTP | Código | Caso |
+|---|---|---|
+| 200 | — | `{ pedido }` con `version + 1`; se registra en `historial_estado` y se emite `pedido.estado` |
+| 400 | `DATOS_INVALIDOS` | `CANCELADO` sin `motivo` |
+| 409 | `CONFLICTO_VERSION` | Otro cambio se adelantó |
+| 409 | `PAGO_NO_APROBADO` | Aceptar un pedido `EN_LINEA` sin pago `APROBADO` (RF-21) |
+| 409 | `TRANSICION_NO_PERMITIDA` | Salto de estado inválido; el productor solo rechaza pedidos `PENDIENTE` |
+| 404 | `NO_ENCONTRADO` | No existe o no es del productor |
+
+Rechazar (`CANCELADO`) devuelve el stock a las publicaciones. Un proceso horario cancela los `PENDIENTE` con más de `HORAS_CANCELACION` (48 h) y también devuelve el stock.
+
+## POST /pedidos/{id}/pago · CU-22
+
+Sin cuerpo: el monto **siempre** se calcula en el servidor (`total × 100` centavos).
+
+| HTTP | Código | Caso |
+|---|---|---|
+| 201 | — | `{ pago: { referencia, estado }, urlCheckout }` firmado con `SHA256(referencia + centavos + "COP" + secretoIntegridad)` |
+| 200 | — | Ya existía un intento vigente: se reutiliza |
+| 409 | `METODO_CONTRA_ENTREGA` · `PEDIDO_NO_PENDIENTE` · `PAGO_YA_APROBADO` | No corresponde pagar |
+| 503 | `PASARELA_NO_CONFIGURADA` | Faltan las llaves `WOMPI_*` |
+
+La app abre `urlCheckout` en el navegador del sistema y, al volver, consulta `GET /pedidos/{id}`. La redirección no decide nada.
+
+## PATCH /pedidos/{id}/pago · CU-22 A1
+
+Cuerpo: `{ "metodoPago": "CONTRA_ENTREGA" }`. Devuelve el detalle del pedido con `estadoPago = NO_APLICA`. `409 PAGO_EN_CURSO` si hay un intento de menos de 30 min.
+
+## POST /pagos/wompi/eventos · webhook
+
+Evento `transaction.updated` de Wompi. Se verifica `checksum = SHA256(valores de signature.properties + timestamp + secretoEventos)` con comparación en tiempo constante y el `environment` configurado.
+
+| Resultado (`200 { resultado }`) | Significado |
+|---|---|
+| `ACTUALIZADO` | Estado del pago y del pedido actualizados |
+| `REPETIDO` / `SIN_CAMBIO` | Evento ya procesado (idempotente) |
+| `MONTO_DISTINTO` | El monto no coincide: se registra en bitácora y no se aprueba |
+| `IGNORADO` | Referencia ajena a AgroTech u otro tipo de evento |
+
+`401 FIRMA_INVALIDA`: checksum o ambiente incorrecto.
+
+## GET /pagos/retorno
+
+`302` hacia `WOMPI_RETORNO_APP` (`agrotech://pago?id=<transacción>`): devuelve al usuario a la app tras el checkout.
+

@@ -108,6 +108,13 @@ export const api = {
   producto: (id) => solicitar(`/productos/${id}`),
   misProductos: () => solicitar('/productos/mios'),
   editarProducto: (id, cambios) => solicitar(`/productos/${id}`, { metodo: 'PATCH', cuerpo: cambios }),
+  // Pedidos y pagos (AGRO-8, AGRO-9, AGRO-19, AGRO-21)
+  confirmarPedido: (clave, cuerpo) => solicitar('/pedidos', { metodo: 'POST', cuerpo, cabeceras: { 'Idempotency-Key': clave }, tiempoEspera: 20000 }),
+  pedidos: (estado = 'activos') => solicitar(`/pedidos${consulta({ estado })}`),
+  pedido: (id) => solicitar(`/pedidos/${id}`),
+  cambiarEstadoPedido: (id, cuerpo) => solicitar(`/pedidos/${id}/estado`, { metodo: 'PATCH', cuerpo }),
+  iniciarPago: (id) => solicitar(`/pedidos/${id}/pago`, { metodo: 'POST' }),
+  cambiarAContraEntrega: (id) => solicitar(`/pedidos/${id}/pago`, { metodo: 'PATCH', cuerpo: { metodoPago: 'CONTRA_ENTREGA' } }),
   async publicarProducto(datos, { foto, miniatura }) {
     const formulario = new FormData();
     formulario.append('datos', JSON.stringify(datos));

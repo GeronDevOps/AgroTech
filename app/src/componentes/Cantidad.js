@@ -5,8 +5,9 @@ import { colores, espacio, texto, toque } from '../tema/tema';
 /**
  * Selector de cantidad "−  20  +" (wireframe 2): botones de 56 dp y campo numérico editable.
  * valor es texto para permitir escribir decimales ("2,5").
+ * etiquetaAccesible: nombre para el lector de pantalla cuando la etiqueta visible es corta (carrito).
  */
-export function Cantidad({ etiqueta, valor, onCambiar, error, minimo = 0, paso = 1, sufijo }) {
+export function Cantidad({ etiqueta, etiquetaAccesible, valor, onCambiar, error, minimo = 0, paso = 1, sufijo }) {
   const actual = leerNumero(valor, { decimales: true });
   const cambiar = (delta) => {
     const base = Number.isFinite(actual) ? actual : 0;
@@ -20,7 +21,7 @@ export function Cantidad({ etiqueta, valor, onCambiar, error, minimo = 0, paso =
           <Text style={styles.signo}>−</Text>
         </Pressable>
         <TextInput
-          accessibilityLabel={etiqueta}
+          accessibilityLabel={etiquetaAccesible || etiqueta}
           accessibilityHint={error}
           value={valor}
           onChangeText={(t) => onCambiar(t.replace(/[^\d,.]/g, ''))}
@@ -48,10 +49,10 @@ const styles = StyleSheet.create({
   },
   signo: { fontSize: texto.grande, fontWeight: '800', color: colores.primario },
   entrada: {
-    minWidth: 96, height: toque.boton, borderWidth: 2, borderColor: colores.borde, borderRadius: 12,
+    width: 96, minWidth: 56, flexShrink: 1, height: toque.boton, borderWidth: 2, borderColor: colores.borde, borderRadius: 12,
     fontSize: texto.titulo, fontWeight: '700', color: colores.texto, paddingHorizontal: espacio.s,
   },
   entradaError: { borderColor: colores.error },
-  sufijo: { fontSize: texto.base, color: colores.textoSecundario, fontWeight: '700' },
+  sufijo: { flexShrink: 1, fontSize: texto.base, color: colores.textoSecundario, fontWeight: '700' },
   error: { fontSize: texto.pequeno, color: colores.error, fontWeight: '600', marginTop: espacio.xs },
 });
