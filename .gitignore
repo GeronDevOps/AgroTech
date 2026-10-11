@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (nunca se suben)
+.env
+.env.*
+!.env.example
+
+# Expo / React Native
+app/.expo/
+app/dist/
+app/web-build/
+app/android/
+app/ios/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+
+# Pruebas y registros
+coverage/
+*.log
+npm-debug.log*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
