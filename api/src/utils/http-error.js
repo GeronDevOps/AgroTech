@@ -21,6 +21,17 @@ const errores = {
   noEncontrado: (mensaje = 'El recurso no existe.') => new HttpError(404, 'NO_ENCONTRADO', mensaje),
   conflicto: (codigo, mensaje, detalles) => new HttpError(409, codigo, mensaje, detalles),
   noDisponible: (mensaje = 'Servicio no disponible.') => new HttpError(503, 'NO_DISPONIBLE', mensaje),
+
+  // Autenticación (CU-01, CU-21)
+  sesionExpirada: () => new HttpError(401, 'SESION_EXPIRADA', 'La sesión expiró. Inicie sesión de nuevo.'),
+  credencialesInvalidas: () => new HttpError(401, 'CREDENCIALES_INVALIDAS', 'Credenciales inválidas.'),
+  cuentaBloqueada: (bloqueadoHasta, mensaje = 'Cuenta bloqueada temporalmente por intentos fallidos.') =>
+    new HttpError(423, 'CUENTA_BLOQUEADA', mensaje, { bloqueadoHasta }),
+  cuentaSuspendida: () => new HttpError(403, 'CUENTA_SUSPENDIDA', 'La cuenta está suspendida. Comuníquese con la asociación.'),
+  cuentaExistente: (campo) =>
+    new HttpError(409, 'CUENTA_EXISTENTE', campo === 'telefono'
+      ? 'Ya existe una cuenta con ese celular. Inicie sesión.'
+      : 'Ya existe una cuenta con ese correo. Inicie sesión.', { campo }),
 };
 
 module.exports = { HttpError, errores };
