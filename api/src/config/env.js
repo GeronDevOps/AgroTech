@@ -27,6 +27,11 @@ function toInt(name, value, fallback) {
   return n;
 }
 
+function unoDe(name, value, permitidos) {
+  if (!permitidos.includes(value)) throw new Error(`La variable ${name} debe ser una de: ${permitidos.join(', ')}.`);
+  return value;
+}
+
 const config = Object.freeze({
   env: NODE_ENV,
   isTest,
@@ -50,7 +55,10 @@ const config = Object.freeze({
     versionAvisoPrivacidad: process.env.AVISO_PRIVACIDAD_VERSION || '1.0',
   }),
   fotos: Object.freeze({
-    // Driver local (desarrollo y pruebas). En AWS se reemplaza por S3 (AGRO-16) con la misma interfaz.
+    // "local" (desarrollo y pruebas) o "s3" (AWS, AGRO-16). Misma interfaz en ambos drivers.
+    driver: unoDe('FOTOS_DRIVER', process.env.FOTOS_DRIVER || 'local', ['local', 's3']),
+    s3Bucket: process.env.FOTOS_S3_BUCKET || '',
+    s3Region: process.env.AWS_REGION || 'us-east-1',
     dir: process.env.FOTOS_DIR
       ? path.resolve(process.env.FOTOS_DIR)
       : path.resolve(__dirname, isTest ? '../../tmp/fotos-pruebas' : '../../uploads'),
