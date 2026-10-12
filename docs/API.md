@@ -127,8 +127,14 @@ Autenticación: cabecera `Authorization: Bearer <token>` en las rutas marcadas c
 | 400 | `DATOS_INVALIDOS` | `detalles.campos` (A2: sin foto, precio o cantidad inválidos) |
 | 409 | `ID_EN_USO` | El `id` pertenece a otro productor |
 | 413 | `FOTO_MUY_GRANDE` | Foto > 300 KB |
+| 503 | `NO_DISPONIBLE` | El almacenamiento de fotos (S3) no respondió; no queda nada guardado y la cola de la app reintenta (5xx) |
 
-Las fotos se guardan como `productos/<idProductor>/<id>.jpg` y `<id>_min.jpg`; si la inserción falla se borran.
+Las fotos se guardan como `productos/<idProductor>/<id>.jpg` y `<id>_min.jpg`; si la subida o la inserción fallan se borran.
+
+| Driver (`FOTOS_DRIVER`) | Dónde quedan | `fotoUrl` / `miniaturaUrl` |
+|---|---|---|
+| `local` (desarrollo) | Disco de la API, servido en `/fotos` | `FOTOS_URL_BASE` o `http(s)://<host de la petición>/fotos/…` |
+| `s3` (AWS, AGRO-16) | Bucket `agrotech-imagenes-…`, cifrado, caché inmutable de 30 días | `FOTOS_URL_BASE` o `https://<bucket>.s3.<región>.amazonaws.com/…`; el teléfono descarga directo del bucket |
 
 ## PATCH /productos/{id} · CU-10 / RF-10a
 
