@@ -202,7 +202,8 @@ function HojaPrecio({ visible, filtros, onAplicar, onCerrar }) {
 
 const styles = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
-  barraFiltros: { flexGrow: 0, borderBottomWidth: 1, borderBottomColor: colores.superficie },
+  // flexShrink 0: con una lista larga, la vista web aplastaba la barra de filtros (hallado por la suite E2E).
+  barraFiltros: { flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, borderBottomColor: colores.superficie },
   filtros: { padding: espacio.s, gap: espacio.s },
   filtro: {
     minHeight: toque.minimo, justifyContent: 'center', paddingHorizontal: espacio.m, borderRadius: 24,
