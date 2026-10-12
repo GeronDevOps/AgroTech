@@ -64,12 +64,15 @@ api/src/
 - Solo los repositorios hablan con PostgreSQL.
 - Los servicios no conocen Express.
 - Toda consulta SQL es parametrizada (`$1, $2…`); nunca se concatenan valores del usuario.
+- Las rutas protegidas usan `autenticar(tokens)` y, si dependen del rol, `autorizar('PRODUCTOR')` (ver `src/middleware/autenticacion.js`).
+- Nunca se registra en logs ni se devuelve `contrasena_hash`, tokens o secretos.
 
 ## Migraciones
 
 - Un archivo por cambio: `NNN_descripcion.sql` (`002_…`, `003_…`).
 - Una migración ya integrada a `develop` **no se edita**; se corrige con una nueva.
 - Cada archivo se aplica dentro de una transacción y queda registrado en `schema_migrations`.
+- Las migraciones son **aditivas** (tablas, columnas con valor por defecto, índices): la versión anterior del código debe seguir funcionando sobre el esquema nuevo, porque `desplegar.sh` revierte el código, no la base (ADR-002). Borrar o renombrar se hace en dos versiones.
 
 ## Errores de la API
 
@@ -82,8 +85,10 @@ Formato único de respuesta de error:
 | HTTP | Cuándo |
 |---|---|
 | 400 | Datos inválidos |
-| 401 | Sin token válido |
-| 403 | Sin permiso por rol |
+| 401 | Sin token válido (`NO_AUTENTICADO`, `SESION_EXPIRADA`) o credenciales inválidas (`CREDENCIALES_INVALIDAS`) |
+| 403 | Sin permiso por rol (`SIN_PERMISO`) o cuenta suspendida (`CUENTA_SUSPENDIDA`) |
+| 423 | Cuenta bloqueada temporalmente (`CUENTA_BLOQUEADA`) |
 | 404 | Recurso inexistente |
-| 409 | Conflicto de stock, de versión o de transición de estado |
+| 409 | Conflicto de stock, de versión (`CONFLICTO_VERSION`), de transición de estado, cuenta existente (`CUENTA_EXISTENTE`) o id ajeno (`ID_EN_USO`) |
+| 413 | Foto de más de 300 KB (`FOTO_MUY_GRANDE`) |
 | 500 | Error no controlado (se registra; no se exponen detalles) |

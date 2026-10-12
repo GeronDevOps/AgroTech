@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "AgroTech",
+    "slug": "agrotech",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "co.edu.unipamplona.agrotech"
+    },
+    "android": {
+      "package": "co.edu.unipamplona.agrotech",
+      "adaptiveIcon": {
+        "backgroundColor": "#E8F5E9",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "AgroTech usa la cámara para tomar la foto de sus productos.",
+          "photosPermission": "AgroTech usa sus fotos para mostrar sus productos en el catálogo.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-web-browser",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "pedidos",
+          "color": "#2E7D32"
+        }
+      ]
+    ],
+    "scheme": "agrotech",
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
