@@ -36,3 +36,8 @@ api/tmp/
 *firebase-adminsdk*.json
 fcm-credenciales*.json
 app/google-services.json
+
+# Pruebas de sistema (AGRO-14)
+e2e/node_modules/
+e2e/informe-html/
+e2e/resultados/

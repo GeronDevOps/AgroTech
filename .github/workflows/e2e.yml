@@ -1,0 +1,86 @@
+# AGRO-14 — Pruebas de sistema automatizadas (caja negra) con Playwright Test.
+# Ejecuta CP-01…CP-19 contra la API real (HTTP + WebSocket) y la app web compilada en Chromium con tamaño de teléfono.
+#   · Pull request hacia main (puerta de liberación), cada noche y a demanda.
+#   · A demanda también contra un servidor desplegado: indique la URL en "api_url" (staging o producción).
+# Artefactos: informe HTML con trazas, JUnit y la matriz de trazabilidad resultados/informe-cp.md.
+name: Pruebas de sistema (E2E)
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 7 * * *' # 02:00 en Colombia
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'URL de una API desplegada (vacío = levantar todo en el runner)'
+        required: false
+        default: ''
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright (API + interfaz)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agrotech_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: true
+      E2E_DATABASE_URL: postgres://postgres:postgres@localhost:5432/agrotech_e2e
+      E2E_API_URL: ${{ inputs.api_url }}
+      E2E_WOMPI_SECRETO_EVENTOS: ${{ inputs.api_url && secrets.E2E_WOMPI_SECRETO_EVENTOS || '' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            api/package-lock.json
+            app/package-lock.json
+            e2e/package-lock.json
+      - name: Dependencias
+        run: |
+          npm ci --prefix api
+          npm ci --prefix app
+          npm ci --prefix e2e
+      - name: Navegador Chromium
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+      - name: Preparar entorno (migraciones y app web)
+        if: ${{ !inputs.api_url }}
+        working-directory: e2e
+        run: npm run preparar
+      - name: Ejecutar CP-01…CP-19
+        working-directory: e2e
+        run: npx playwright test ${{ inputs.api_url && '--project=api' || '' }}
+      - name: Matriz de trazabilidad en el resumen
+        if: always()
+        run: cat e2e/resultados/informe-cp.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informe-pruebas-sistema
+          path: |
+            e2e/informe-html
+            e2e/resultados
+          retention-days: 30
