@@ -1,0 +1,103 @@
+# AGRO-16 — Despliegue continuo de la API en AWS (EC2 detrás del ALB; RDS; S3).
+# Se dispara al publicar una etiqueta de versión (v1.0.0…) o a mano. Sin llaves de AWS en GitHub:
+# el job asume el rol de infra/agrotech.yaml por OIDC, solo desde el entorno protegido de GitHub.
+# Variables del entorno de GitHub (Settings → Environments → produccion):
+#   AWS_REGION · AWS_ROL_DESPLIEGUE · ID_SERVIDOR · BUCKET_DESPLIEGUES · API_URL (https://api.agrotech.co)
+name: Desplegar API
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      entorno:
+        description: Entorno de destino
+        type: choice
+        options: [produccion, pruebas]
+        default: produccion
+
+concurrency:
+  group: desplegar-${{ inputs.entorno || 'produccion' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verificar:
+    name: Pruebas antes de desplegar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env: { POSTGRES_USER: postgres, POSTGRES_PASSWORD: postgres, POSTGRES_DB: agrotech_test }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/agrotech_test
+    defaults: { run: { working-directory: api } }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm, cache-dependency-path: api/package-lock.json }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --ci
+
+  desplegar:
+    name: Desplegar en ${{ inputs.entorno || 'produccion' }}
+    needs: verificar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.entorno || 'produccion' }}
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Nombre de la versión
+        id: v
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then V="$GITHUB_REF_NAME"; else V="sha-$(git rev-parse --short=12 HEAD)"; fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - name: Empaquetar (api, migraciones e infra; sin node_modules ni secretos)
+        run: git archive --format=tar.gz -o version.tar.gz HEAD api db infra
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROL_DESPLIEGUE }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Subir la versión
+        run: aws s3 cp --only-show-errors version.tar.gz "s3://${{ vars.BUCKET_DESPLIEGUES }}/versiones/${{ steps.v.outputs.version }}.tar.gz"
+      - name: Ejecutar desplegar.sh en el servidor (SSM Run Command)
+        run: |
+          V='${{ steps.v.outputs.version }}'
+          B='${{ vars.BUCKET_DESPLIEGUES }}'
+          COMANDOS=$(jq -nc --arg v "$V" --arg b "$B" '{commands: [
+            "set -euo pipefail",
+            "T=$(mktemp -d)",
+            "aws s3 cp --only-show-errors s3://\($b)/versiones/\($v).tar.gz $T/p.tgz",
+            "tar -xzf $T/p.tgz -C $T infra/servidor/desplegar.sh",
+            "bash $T/infra/servidor/desplegar.sh \($v)"
+          ]}')
+          ID=$(aws ssm send-command --instance-ids '${{ vars.ID_SERVIDOR }}' --document-name AWS-RunShellScript \
+               --comment "AgroTech $V" --timeout-seconds 900 --parameters "$COMANDOS" --query Command.CommandId --output text)
+          echo "Comando SSM: $ID"
+          aws ssm wait command-executed --command-id "$ID" --instance-id '${{ vars.ID_SERVIDOR }}' || true
+          R=$(aws ssm get-command-invocation --command-id "$ID" --instance-id '${{ vars.ID_SERVIDOR }}')
+          echo "$R" | jq -r '.StandardOutputContent'
+          echo "$R" | jq -r '.StandardErrorContent' >&2
+          test "$(echo "$R" | jq -r .Status)" = Success
+      - name: Prueba de humo contra el dominio público
+        run: |
+          ESPERADA=$(find db/migrations -name "*.sql" -printf "%f\n" | sort | tail -1 | cut -d_ -f1)
+          for _ in $(seq 1 10); do
+            S=$(curl -fsS '${{ vars.API_URL }}/api/v1/salud' || true)
+            echo "$S"
+            if [ "$(echo "$S" | jq -r .estado 2>/dev/null)" = ok ]; then break; fi
+            sleep 6
+          done
+          test "$(echo "$S" | jq -r .estado)" = ok
+          echo "$S" | jq -e --arg m "$ESPERADA" '.baseDeDatos.migracion == $m'
+          curl -fsS -o /dev/null -w 'Redirección HTTP→HTTPS: %{http_code}\n' "$(echo '${{ vars.API_URL }}' | sed 's/^https/http/')/api/v1/salud" || true

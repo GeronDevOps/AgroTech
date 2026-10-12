@@ -58,16 +58,23 @@ function createProductosService({ productosRepository, almacenFotos, limitesFoto
       if (existente) return reintento(existente);
 
       const fotoClave = `productos/${usuario.id}/${id}.jpg`;
-      await almacenFotos.guardar(fotoClave, archivos.foto.buffer, 'image/jpeg');
-      await almacenFotos.guardar(claveMiniatura(fotoClave), archivos.miniatura.buffer, 'image/jpeg');
+      const limpiarFotos = () => Promise.allSettled([almacenFotos.eliminar(fotoClave), almacenFotos.eliminar(claveMiniatura(fotoClave))]);
+      try {
+        await almacenFotos.guardar(fotoClave, archivos.foto.buffer, 'image/jpeg');
+        await almacenFotos.guardar(claveMiniatura(fotoClave), archivos.miniatura.buffer, 'image/jpeg');
+      } catch {
+        // S3 (o el disco) no respondió: no quedan fotos huérfanas y la app reintenta desde su cola (5xx = reintentar).
+        // Si un reintento simultáneo ya creó la publicación, sus fotos (misma clave) se conservan.
+        if (!(await productosRepository.buscarPorId(id))) await limpiarFotos();
+        throw errores.noDisponible('No se pudo guardar la foto. Intente de nuevo en unos minutos.');
+      }
       try {
         const creado = await productosRepository.insertar({ ...d, id, idProductor: usuario.id, fotoClave });
         const fila = await productosRepository.buscarPorId(id);
         if (!creado) return reintento(fila); // carrera entre dos reintentos simultáneos
         return { creado: true, producto: publico(fila, baseFotos) };
       } catch (err) {
-        await almacenFotos.eliminar(fotoClave);
-        await almacenFotos.eliminar(claveMiniatura(fotoClave));
+        await limpiarFotos();
         throw err;
       }
 

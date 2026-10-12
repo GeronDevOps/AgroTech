@@ -1,0 +1,44 @@
+# AGRO-16 · Servicio systemd de la API (diagrama de despliegue: «Node.js 22 LTS + gestor de procesos»).
+# Un solo proceso atiende REST (:3000), WebSocket (/ws) y las tareas programadas (cancelación a las 48 h, reintentos push).
+# Lo instala infra/servidor/desplegar.sh en /etc/systemd/system/.
+[Unit]
+Description=AgroTech API (REST + WebSocket + tareas programadas)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=agrotech
+Group=agrotech
+WorkingDirectory=/srv/agrotech/actual/api
+# "+" = se ejecuta como root: lee SSM / Secrets Manager y escribe /etc/agrotech/api.env antes de cada arranque.
+ExecStartPre=+/srv/agrotech/actual/infra/servidor/cargar-entorno.sh
+EnvironmentFile=/etc/agrotech/api.env
+ExecStart=/usr/bin/node src/server.js
+# server.js cierra el WebSocket y el pool con SIGTERM (cierre ordenado).
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+# Endurecimiento: la API no escribe en disco (fotos en S3) ni necesita privilegios.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agrotech-api
+
+[Install]
+WantedBy=multi-user.target

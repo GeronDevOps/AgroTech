@@ -72,6 +72,7 @@ api/src/
 - Un archivo por cambio: `NNN_descripcion.sql` (`002_…`, `003_…`).
 - Una migración ya integrada a `develop` **no se edita**; se corrige con una nueva.
 - Cada archivo se aplica dentro de una transacción y queda registrado en `schema_migrations`.
+- Las migraciones son **aditivas** (tablas, columnas con valor por defecto, índices): la versión anterior del código debe seguir funcionando sobre el esquema nuevo, porque `desplegar.sh` revierte el código, no la base (ADR-002). Borrar o renombrar se hace en dos versiones.
 
 ## Errores de la API
 

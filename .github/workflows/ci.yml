@@ -56,6 +56,17 @@ jobs:
       - name: Pruebas unitarias e integración
         run: npm test -- --ci
 
+  infra:
+    name: Infraestructura (CloudFormation y scripts)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: cfn-lint
+        run: pip install --quiet cfn-lint && cfn-lint infra/agrotech.yaml
+      - name: shellcheck
+        run: shellcheck -x infra/servidor/*.sh
+
   app:
     name: App (React Native / Expo)
     runs-on: ubuntu-latest

@@ -5,14 +5,14 @@ const { apiRoutes } = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error-handler');
 const { cors } = require('./middleware/cors');
 const config = require('./config/env');
-const { createAlmacenFotosLocal } = require('./almacenamiento/fotos-local');
+const { crearAlmacenFotos } = require('./almacenamiento');
 
 /**
  * Crea la aplicación Express sin abrir el puerto, para poder probarla con supertest.
  * @param {{ pool: import('pg').Pool, almacenFotos?: object }} deps dependencias inyectadas
  */
 function createApp(deps) {
-  const almacenFotos = deps.almacenFotos || createAlmacenFotosLocal({ dir: config.fotos.dir });
+  const almacenFotos = deps.almacenFotos || crearAlmacenFotos(config.fotos);
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // detrás del Application Load Balancer de AWS
@@ -29,6 +29,7 @@ function createApp(deps) {
   app.use(express.json({ limit: '1mb' }));
 
   // Fotos del driver local: nombres únicos por publicación, se pueden guardar en caché mucho tiempo.
+  // Con S3 la app las descarga directo del bucket y la API no las sirve.
   if (almacenFotos.tipo === 'local') {
     app.use('/fotos', express.static(almacenFotos.dir, { immutable: true, maxAge: '30d', index: false }));
   }
