@@ -14,7 +14,9 @@
     "lint": "eslint .",
     "test": "jest --runInBand",
     "test:unit": "jest tests/unit",
-    "test:integration": "jest --runInBand tests/integration"
+    "test:integration": "jest --runInBand tests/integration",
+    "sembrar": "node scripts/sembrar.js",
+    "piloto:informe": "node scripts/informe-piloto.js"
   },
   "license": "UNLICENSED",
   "dependencies": {

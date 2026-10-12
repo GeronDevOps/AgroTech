@@ -1,0 +1,3 @@
+# Una fila por participante y tarea. resultado: EXITO (sin ayuda) | AYUDA | FALLO. Tareas: P1-P6, C1-C6 (GUION_TAREAS.md).
+# tiempo_s: segundos hasta el resultado. errores: toques equivocados que obligan a volver. toques: toques hasta completar.
+participante,rol,tarea,resultado,tiempo_s,errores,toques
