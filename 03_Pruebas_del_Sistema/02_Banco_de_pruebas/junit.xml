@@ -1,0 +1,314 @@
+<testsuites id="" name="" tests="100" failures="0" skipped="0" errors="0" time="51.857471">
+<testsuite name="banco/admin_rnf.api.spec.js" timestamp="2026-11-16T07:22:31.716Z" hostname="banco-api" tests="13" failures="0" skipped="0" time="6.111" errors="0">
+<testcase name="BP-076 · Reportar una publicación y repetirlo" classname="banco/admin_rnf.api.spec.js" time="0.367">
+</testcase>
+<testcase name="BP-077 · «Otro» exige descripción" classname="banco/admin_rnf.api.spec.js" time="0.492">
+</testcase>
+<testcase name="BP-078 · No se reporta el contenido propio" classname="banco/admin_rnf.api.spec.js" time="0.122">
+</testcase>
+<testcase name="BP-079 · Acceso al panel sin el rol de administrador" classname="banco/admin_rnf.api.spec.js" time="0.687">
+</testcase>
+<testcase name="BP-080 · Ocultar una publicación reportada" classname="banco/admin_rnf.api.spec.js" time="0.916">
+</testcase>
+<testcase name="BP-081 · Suspender con pedidos en curso" classname="banco/admin_rnf.api.spec.js" time="0.783">
+</testcase>
+<testcase name="BP-082 · Verificar un productor" classname="banco/admin_rnf.api.spec.js" time="0.4">
+</testcase>
+<testcase name="BP-083 · Reporte malintencionado" classname="banco/admin_rnf.api.spec.js" time="0.593">
+</testcase>
+<testcase name="BP-084 · Tiempo de respuesta del catálogo" classname="banco/admin_rnf.api.spec.js" time="1.313">
+<properties>
+<property name="medición" value="p95 = 81 ms · media = 30 ms (30 consultas)">
+</property>
+</properties>
+</testcase>
+<testcase name="BP-085 · Cabeceras de seguridad" classname="banco/admin_rnf.api.spec.js" time="0.01">
+</testcase>
+<testcase name="BP-086 · Intentos de inyección SQL" classname="banco/admin_rnf.api.spec.js" time="0.323">
+</testcase>
+<testcase name="BP-087 · Cuerpo demasiado grande" classname="banco/admin_rnf.api.spec.js" time="0.036">
+</testcase>
+<testcase name="BP-088 · Estado de salud del servicio" classname="banco/admin_rnf.api.spec.js" time="0.069">
+<properties>
+<property name="medición" value="Respuesta de /salud: {&quot;estado&quot;:&quot;ok&quot;,&quot;version&quot;:&quot;1.1.0&quot;,&quot;baseDeDatos&quot;:{&quot;estado&quot;:&quot;ok&quot;,&quot;latenciaMs&quot;:0.4,&quot;migracion&quot;:&quot;006&quot;}}">
+</property>
+</properties>
+</testcase>
+</testsuite>
+<testsuite name="banco/cuentas_perfil.api.spec.js" timestamp="2026-11-16T07:22:31.716Z" hostname="banco-api" tests="23" failures="0" skipped="0" time="6.029" errors="0">
+<testcase name="BP-001 · Registro válido de un productor" classname="banco/cuentas_perfil.api.spec.js" time="0.344">
+</testcase>
+<testcase name="BP-002 · Registro sin autorizar el tratamiento de datos" classname="banco/cuentas_perfil.api.spec.js" time="0.249">
+</testcase>
+<testcase name="BP-003 · Registro con un correo ya usado" classname="banco/cuentas_perfil.api.spec.js" time="0.245">
+</testcase>
+<testcase name="BP-004 · Celular con formato inválido" classname="banco/cuentas_perfil.api.spec.js" time="0.038">
+</testcase>
+<testcase name="BP-005 · Registro intentando el rol ADMINISTRADOR" classname="banco/cuentas_perfil.api.spec.js" time="0.058">
+</testcase>
+<testcase name="BP-006 · Política de contraseñas" classname="banco/cuentas_perfil.api.spec.js" time="0.221">
+</testcase>
+<testcase name="BP-007 · Inicio de sesión por correo y por celular" classname="banco/cuentas_perfil.api.spec.js" time="0.372">
+</testcase>
+<testcase name="BP-008 · Contraseña errada con mensaje genérico" classname="banco/cuentas_perfil.api.spec.js" time="0.397">
+</testcase>
+<testcase name="BP-009 · Bloqueo tras 5 intentos fallidos" classname="banco/cuentas_perfil.api.spec.js" time="1.123">
+<properties>
+<property name="medición" value="Bloqueo de 15.0 min tras el 5.º intento fallido">
+</property>
+</properties>
+</testcase>
+<testcase name="BP-010 · Rutas protegidas sin token o con token alterado" classname="banco/cuentas_perfil.api.spec.js" time="0.101">
+</testcase>
+<testcase name="BP-011 · Las respuestas no exponen la contraseña ni su hash" classname="banco/cuentas_perfil.api.spec.js" time="0.18">
+</testcase>
+<testcase name="BP-012 · Recuperación con respuesta neutra" classname="banco/cuentas_perfil.api.spec.js" time="0.282">
+</testcase>
+<testcase name="BP-013 · Tres códigos errados invalidan el código" classname="banco/cuentas_perfil.api.spec.js" time="0.591">
+</testcase>
+<testcase name="BP-014 · Restablecer cierra las sesiones y el código es de un solo uso" classname="banco/cuentas_perfil.api.spec.js" time="0.386">
+</testcase>
+<testcase name="BP-015 · Formato del código de recuperación" classname="banco/cuentas_perfil.api.spec.js" time="0.022">
+</testcase>
+<testcase name="BP-016 · Cambiar el municipio recalcula las coordenadas" classname="banco/cuentas_perfil.api.spec.js" time="0.103">
+</testcase>
+<testcase name="BP-017 · Ubicación fuera de Norte de Santander" classname="banco/cuentas_perfil.api.spec.js" time="0.108">
+</testcase>
+<testcase name="BP-018 · El rol no se cambia desde el perfil" classname="banco/cuentas_perfil.api.spec.js" time="0.129">
+</testcase>
+<testcase name="BP-019 · Correo de otra cuenta" classname="banco/cuentas_perfil.api.spec.js" time="0.183">
+</testcase>
+<testcase name="BP-020 · Consultar datos, finalidades y autorización" classname="banco/cuentas_perfil.api.spec.js" time="0.097">
+</testcase>
+<testcase name="BP-021 · La supresión exige confirmar las consecuencias" classname="banco/cuentas_perfil.api.spec.js" time="0.099">
+</testcase>
+<testcase name="BP-022 · Supresión aplazada, repetida y desistida" classname="banco/cuentas_perfil.api.spec.js" time="0.245">
+</testcase>
+<testcase name="BP-023 · Supresión completa: anonimiza y conserva la transacción" classname="banco/cuentas_perfil.api.spec.js" time="0.456">
+</testcase>
+</testsuite>
+<testsuite name="banco/inventario_catalogo.api.spec.js" timestamp="2026-11-16T07:22:31.716Z" hostname="banco-api" tests="23" failures="0" skipped="0" time="5.461" errors="0">
+<testcase name="BP-024 · Publicar con foto y miniatura" classname="banco/inventario_catalogo.api.spec.js" time="0.34">
+</testcase>
+<testcase name="BP-025 · Publicar sin foto" classname="banco/inventario_catalogo.api.spec.js" time="0.156">
+</testcase>
+<testcase name="BP-026 · Precio mínimo ($50)" classname="banco/inventario_catalogo.api.spec.js" time="0.188">
+</testcase>
+<testcase name="BP-027 · Precio máximo ($50.000.000)" classname="banco/inventario_catalogo.api.spec.js" time="0.169">
+</testcase>
+<testcase name="BP-028 · Cantidad al publicar" classname="banco/inventario_catalogo.api.spec.js" time="0.166">
+</testcase>
+<testcase name="BP-029 · Un consumidor no puede publicar" classname="banco/inventario_catalogo.api.spec.js" time="0.226">
+</testcase>
+<testcase name="BP-030 · Filtros por municipio y categoría" classname="banco/inventario_catalogo.api.spec.js" time="0.505">
+</testcase>
+<testcase name="BP-031 · Rango de precio invertido" classname="banco/inventario_catalogo.api.spec.js" time="0.14">
+</testcase>
+<testcase name="BP-032 · Tamaño de página" classname="banco/inventario_catalogo.api.spec.js" time="0.177">
+</testcase>
+<testcase name="BP-033 · Edición con versión desactualizada" classname="banco/inventario_catalogo.api.spec.js" time="0.182">
+</testcase>
+<testcase name="BP-034 · Cantidad 0 → Agotada y vuelta a Activa" classname="banco/inventario_catalogo.api.spec.js" time="0.269">
+</testcase>
+<testcase name="BP-035 · Pausar y reactivar" classname="banco/inventario_catalogo.api.spec.js" time="0.435">
+</testcase>
+<testcase name="BP-036 · Retirar con un pedido en curso" classname="banco/inventario_catalogo.api.spec.js" time="0.331">
+</testcase>
+<testcase name="BP-037 · Transición de estado no permitida" classname="banco/inventario_catalogo.api.spec.js" time="0.172">
+</testcase>
+<testcase name="BP-038 · Otro productor no puede editar la publicación" classname="banco/inventario_catalogo.api.spec.js" time="0.209">
+</testcase>
+<testcase name="BP-039 · Búsqueda sin tildes ni mayúsculas en nombre y descripción" classname="banco/inventario_catalogo.api.spec.js" time="0.313">
+</testcase>
+<testcase name="BP-040 · Búsqueda con menos de 3 caracteres" classname="banco/inventario_catalogo.api.spec.js" time="0.201">
+</testcase>
+<testcase name="BP-041 · Orden por precio descendente conservando filtros" classname="banco/inventario_catalogo.api.spec.js" time="0.275">
+</testcase>
+<testcase name="BP-042 · Orden desconocido" classname="banco/inventario_catalogo.api.spec.js" time="0.082">
+</testcase>
+<testcase name="BP-043 · Sin coincidencias sugiere categorías" classname="banco/inventario_catalogo.api.spec.js" time="0.222">
+</testcase>
+<testcase name="BP-044 · «Cerca de mí» con la ubicación del teléfono" classname="banco/inventario_catalogo.api.spec.js" time="0.463">
+</testcase>
+<testcase name="BP-045 · Valores límite del radio" classname="banco/inventario_catalogo.api.spec.js" time="0.147">
+</testcase>
+<testcase name="BP-046 · Radio sin productores propone ampliarlo" classname="banco/inventario_catalogo.api.spec.js" time="0.093">
+</testcase>
+</testsuite>
+<testsuite name="banco/pedidos_comunicacion.api.spec.js" timestamp="2026-11-16T07:22:31.716Z" hostname="banco-api" tests="29" failures="0" skipped="0" time="9.507" errors="0">
+<testcase name="BP-047 · Confirmar un pedido descuenta el inventario" classname="banco/pedidos_comunicacion.api.spec.js" time="0.352">
+</testcase>
+<testcase name="BP-048 · Cantidad mayor al inventario" classname="banco/pedidos_comunicacion.api.spec.js" time="0.422">
+</testcase>
+<testcase name="BP-049 · Idempotencia de la confirmación" classname="banco/pedidos_comunicacion.api.spec.js" time="0.264">
+</testcase>
+<testcase name="BP-050 · Un productor no puede comprar" classname="banco/pedidos_comunicacion.api.spec.js" time="0.234">
+</testcase>
+<testcase name="BP-051 · Carrito con dos productores genera un pedido por productor" classname="banco/pedidos_comunicacion.api.spec.js" time="0.48">
+</testcase>
+<testcase name="BP-052 · Ciclo completo de estados con historial" classname="banco/pedidos_comunicacion.api.spec.js" time="0.443">
+</testcase>
+<testcase name="BP-053 · Transición no permitida" classname="banco/pedidos_comunicacion.api.spec.js" time="0.345">
+</testcase>
+<testcase name="BP-054 · Rechazo exige motivo y restituye inventario" classname="banco/pedidos_comunicacion.api.spec.js" time="0.357">
+</testcase>
+<testcase name="BP-055 · El consumidor no cambia el estado" classname="banco/pedidos_comunicacion.api.spec.js" time="0.328">
+</testcase>
+<testcase name="BP-056 · Cancelar un pedido aceptado" classname="banco/pedidos_comunicacion.api.spec.js" time="0.458">
+</testcase>
+<testcase name="BP-057 · Cancelaciones simultáneas" classname="banco/pedidos_comunicacion.api.spec.js" time="0.442">
+</testcase>
+<testcase name="BP-058 · Un pedido entregado no se cancela" classname="banco/pedidos_comunicacion.api.spec.js" time="0.466">
+</testcase>
+<testcase name="BP-059 · Un tercero no ve ni cancela un pedido ajeno" classname="banco/pedidos_comunicacion.api.spec.js" time="0.474">
+</testcase>
+<testcase name="BP-060 · Historial con filtros de estado y fechas" classname="banco/pedidos_comunicacion.api.spec.js" time="0.487">
+</testcase>
+<testcase name="BP-061 · Pago en línea aprobado por la pasarela" classname="banco/pedidos_comunicacion.api.spec.js" time="0.205">
+</testcase>
+<testcase name="BP-062 · Evento de pago con firma inválida" classname="banco/pedidos_comunicacion.api.spec.js" time="0.187">
+</testcase>
+<testcase name="BP-063 · No se acepta un pedido en línea sin pago aprobado" classname="banco/pedidos_comunicacion.api.spec.js" time="0.187">
+</testcase>
+<testcase name="BP-064 · Mensaje entregado en tiempo real" classname="banco/pedidos_comunicacion.api.spec.js" time="0.252">
+<properties>
+<property name="medición" value="Mensaje recibido por WebSocket en 15 ms">
+</property>
+</properties>
+</testcase>
+<testcase name="BP-065 · Longitud del mensaje" classname="banco/pedidos_comunicacion.api.spec.js" time="0.207">
+</testcase>
+<testcase name="BP-066 · Un tercero no lee ni escribe en el chat" classname="banco/pedidos_comunicacion.api.spec.js" time="0.382">
+</testcase>
+<testcase name="BP-067 · Calificar antes de la entrega" classname="banco/pedidos_comunicacion.api.spec.js" time="0.254">
+</testcase>
+<testcase name="BP-068 · Puntuación de 1 a 5 y una sola vez" classname="banco/pedidos_comunicacion.api.spec.js" time="0.258">
+</testcase>
+<testcase name="BP-069 · Panel de ventas del productor" classname="banco/pedidos_comunicacion.api.spec.js" time="0.312">
+</testcase>
+<testcase name="BP-070 · Avisos de estado en la bandeja" classname="banco/pedidos_comunicacion.api.spec.js" time="0.224">
+</testcase>
+<testcase name="BP-071 · El aviso de un mensaje abre el chat" classname="banco/pedidos_comunicacion.api.spec.js" time="0.22">
+</testcase>
+<testcase name="BP-072 · Operación sin señal publicada e idempotente" classname="banco/pedidos_comunicacion.api.spec.js" time="0.101">
+</testcase>
+<testcase name="BP-073 · Conflicto de edición: prevalece el servidor" classname="banco/pedidos_comunicacion.api.spec.js" time="0.105">
+</testcase>
+<testcase name="BP-074 · Descarga incremental" classname="banco/pedidos_comunicacion.api.spec.js" time="0.197">
+</testcase>
+<testcase name="BP-075 · ≥ 98 % de operaciones sincronizadas sin error" classname="banco/pedidos_comunicacion.api.spec.js" time="0.864">
+<properties>
+<property name="medición" value="50/50 operaciones sincronizadas (100 %) en 318 ms">
+</property>
+</properties>
+</testcase>
+</testsuite>
+<testsuite name="banco/interfaz.ui.spec.js" timestamp="2026-11-16T07:22:31.716Z" hostname="banco-ui" tests="12" failures="0" skipped="0" time="37.71" errors="0">
+<testcase name="BP-089 · Registro desde la app exige la autorización" classname="banco/interfaz.ui.spec.js" time="4.247">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-089-·-Regis-993c2-a-app-exige-la-autorización-banco-ui/attachments/captura-sin-autorizacion-no-avanza-3334b849b78a55171b83b4d65052d65cac5c03e4.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-089-·-Regis-993c2-a-app-exige-la-autorización-banco-ui/attachments/captura-catalogo-tras-el-registro-b9b3c8e2c6b5a811faa93f9977407d261ac27a77.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-090 · Contraseña errada en la app" classname="banco/interfaz.ui.spec.js" time="1.482">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-090-·-Contraseña-errada-en-la-app-banco-ui/attachments/captura-contrasena-errada-a35c941b3e89c61fb3ceb45e0b0199cb370665ec.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-091 · Filtrar el catálogo por categoría" classname="banco/interfaz.ui.spec.js" time="3.018">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-091-·-Filtrar-el-catálogo-por-categoría-banco-ui/attachments/captura-hoja-de-categorias-7eecbc3a803732f279ec5d1f83abda2060e64ab1.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-091-·-Filtrar-el-catálogo-por-categoría-banco-ui/attachments/captura-solo-frutas-91e59269ada8d426f3853b11b03a64dfcb8918c4.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-092 · Agregar al carrito y confirmar el pedido" classname="banco/interfaz.ui.spec.js" time="4.128">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-092-·-Agreg-5941e-rrito-y-confirmar-el-pedido-banco-ui/attachments/captura-producto-agregado-2f604245427071b885c3560cb7493d57688f2e40.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-092-·-Agreg-5941e-rrito-y-confirmar-el-pedido-banco-ui/attachments/captura-carrito-listo-0f0e7dbfbd5174e70dabb97155432248aea50fda.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-092-·-Agreg-5941e-rrito-y-confirmar-el-pedido-banco-ui/attachments/captura-pedido-confirmado-89c0779da9382c0912edf3e32121729adc3193f7.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-093 · Catálogo sin conexión desde la copia local" classname="banco/interfaz.ui.spec.js" time="4.311">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-093-·-Catál-37339-nexión-desde-la-copia-local-banco-ui/attachments/captura-catalogo-sin-senal-desde-la-copia-local-11c2d390e6096c9f938803259985717824524391.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-094 · Buscar y ver sugerencias" classname="banco/interfaz.ui.spec.js" time="2.97">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-094-·-Buscar-y-ver-sugerencias-banco-ui/attachments/captura-minimo-tres-letras-0573a35e56b567c74cc9e4b9d54b4490d04c7003.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-094-·-Buscar-y-ver-sugerencias-banco-ui/attachments/captura-sin-resultados-con-sugerencias-cbe135d308296f6911cd207dec0030d86d28633b.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-095 · Cancelar un pedido desde la app" classname="banco/interfaz.ui.spec.js" time="3.261">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-095-·-Cancelar-un-pedido-desde-la-app-banco-ui/attachments/captura-motivo-elegido-8502436fdf067945f127b7741ce57c266f9ab266.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-095-·-Cancelar-un-pedido-desde-la-app-banco-ui/attachments/captura-pedido-cancelado-af7bfa716071cb680149c17e259489afdeec3667.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-096 · Datos inválidos en «Mi perfil»" classname="banco/interfaz.ui.spec.js" time="2.196">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-096-·-Datos-inválidos-en-«Mi-perfil»-banco-ui/attachments/captura-celular-invalido-2785f8bb07509e646f5889d55b66954682d2a226.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-097 · Retirar con pedidos en curso desde la app" classname="banco/interfaz.ui.spec.js" time="3.057">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-097-·-Retir-1ba23-didos-en-curso-desde-la-app-banco-ui/attachments/captura-confirmar-retiro-d6bd0fd1aa1916fd4ecfd521ed99ea71a5442676.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-097-·-Retir-1ba23-didos-en-curso-desde-la-app-banco-ui/attachments/captura-retiro-rechazado-por-pedido-en-curso-6c7ed51eec169becebac633a5c804ee6542a260e.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-098 · Verificar un productor desde el panel web" classname="banco/interfaz.ui.spec.js" time="3.6">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-098-·-Verif-2ab11-roductor-desde-el-panel-web-banco-ui/attachments/captura-ficha-del-productor-83d18f0bb34753252c3a6da70bae1eec85cdcbdb.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-098-·-Verif-2ab11-roductor-desde-el-panel-web-banco-ui/attachments/captura-productor-verificado-974b0cd27a5f13d0ce13d3a321297f23790c1eea.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-099 · Contador de avisos sin leer" classname="banco/interfaz.ui.spec.js" time="2.725">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-099-·-Contador-de-avisos-sin-leer-banco-ui/attachments/captura-inicio-sin-avisos-53bd46e42209d210e64612642dd276db25908ebe.png]]
+
+[[ATTACHMENT|evidencias/interfaz.ui-BP-099-·-Contador-de-avisos-sin-leer-banco-ui/attachments/captura-un-aviso-sin-leer-5aabb02b1495b26d587e6b92a2d4528ae16405cd.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="BP-100 · Áreas táctiles mínimas en el inicio" classname="banco/interfaz.ui.spec.js" time="2.715">
+<properties>
+<property name="medición" value="8 botones; alto mínimo 56 px">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/interfaz.ui-BP-100-·-Áreas-táctiles-mínimas-en-el-inicio-banco-ui/attachments/captura-inicio-del-productor-918043869e83b37e782b2f845388b1337babb0a4.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

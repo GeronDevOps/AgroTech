@@ -1,0 +1,948 @@
+{
+  "fecha": "2026-11-16T04:30:18.045Z",
+  "estado": "passed",
+  "casos": [
+    {
+      "id": "CP-01",
+      "cu": "CU-01",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Registrar un usuario con datos válidos y autorización aceptada.",
+      "esperado": "Cuenta creada con su rol; sesión abierta.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-01: registro con datos válidos y autorización aceptada abre la sesión con su rol",
+          "proyecto": "api",
+          "archivo": "api/cuentas.spec.js",
+          "estado": "passed",
+          "duracionMs": 159
+        },
+        {
+          "titulo": "CP-01 (UI): registrarse como consumidor abre la sesión en el catálogo",
+          "proyecto": "ui",
+          "archivo": "ui/cuenta_catalogo.spec.js",
+          "estado": "passed",
+          "duracionMs": 3341
+        }
+      ]
+    },
+    {
+      "id": "CP-02",
+      "cu": "CU-01",
+      "tipo": "Seguridad",
+      "modo": "api",
+      "prueba": "Iniciar sesión 5 veces con contraseña incorrecta.",
+      "esperado": "Mensaje genérico y bloqueo de 15 minutos.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [
+        "Bloqueo de 15.0 min tras el 5.º intento"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-02: cinco contraseñas incorrectas → mensaje genérico y bloqueo de 15 minutos",
+          "proyecto": "api",
+          "archivo": "api/cuentas.spec.js",
+          "estado": "passed",
+          "duracionMs": 595
+        }
+      ]
+    },
+    {
+      "id": "CP-03",
+      "cu": "CU-02",
+      "tipo": "Sistema",
+      "modo": "api",
+      "prueba": "Publicar un producto con foto, precio y cantidad.",
+      "esperado": "Producto \"Activo\" visible en el catálogo.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-03: el producto publicado queda Activo y aparece en el catálogo con su foto",
+          "proyecto": "api",
+          "archivo": "api/catalogo.spec.js",
+          "estado": "passed",
+          "duracionMs": 407
+        }
+      ]
+    },
+    {
+      "id": "CP-04",
+      "cu": "CU-02, CU-17",
+      "tipo": "Sistema",
+      "modo": "ui",
+      "prueba": "Publicar en modo avión y luego activar la red.",
+      "esperado": "Queda \"Pendiente\" y se publica solo al volver la red.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "ui"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [
+        "Publicada 0.4 s después de volver la señal"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-04: publicar en modo avión queda «Pendiente» y se publica solo al volver la red",
+          "proyecto": "ui",
+          "archivo": "ui/cuenta_catalogo.spec.js",
+          "estado": "passed",
+          "duracionMs": 4274
+        }
+      ]
+    },
+    {
+      "id": "CP-05",
+      "cu": "CU-03",
+      "tipo": "Rendimiento",
+      "modo": "api+ui",
+      "prueba": "Filtrar el catálogo por municipio con red 3G simulada.",
+      "esperado": "Solo productos de ese municipio, en máximo 3 s.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [
+        "100 consultas (10 concurrentes): p95 = 155 ms · respuesta JSON 14 KB",
+        "3G (562 ms, 1,44 Mbps): 0.90 s · 0.90 s · 1.14 s · 1.03 s · 1.04 s → p95 1.14 s (umbral 3 s)"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-05 (API): el filtro por municipio responde solo ese municipio; p95 del servidor ≤ 500 ms con 10 usuarios a la vez",
+          "proyecto": "api",
+          "archivo": "api/catalogo.spec.js",
+          "estado": "passed",
+          "duracionMs": 1398
+        },
+        {
+          "titulo": "CP-05 (UI): filtro por municipio con 3G simulado en máximo 3 s",
+          "proyecto": "ui",
+          "archivo": "ui/cuenta_catalogo.spec.js",
+          "estado": "passed",
+          "duracionMs": 16029
+        }
+      ]
+    },
+    {
+      "id": "CP-06",
+      "cu": "CU-04",
+      "tipo": "Sistema",
+      "modo": "api",
+      "prueba": "Confirmar un pedido con stock suficiente.",
+      "esperado": "Stock descontado, pedido \"Pendiente\" y aviso al productor.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [
+        "Aviso «pedido_nuevo» al productor en 58 ms"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-06: con stock suficiente se descuenta, queda «Pendiente» y el productor recibe el aviso",
+          "proyecto": "api",
+          "archivo": "api/pedidos.spec.js",
+          "estado": "passed",
+          "duracionMs": 408
+        }
+      ]
+    },
+    {
+      "id": "CP-07",
+      "cu": "CU-04",
+      "tipo": "Integración",
+      "modo": "api",
+      "prueba": "Dos consumidores compran al mismo tiempo la última unidad.",
+      "esperado": "Solo se crea un pedido; el otro recibe el aviso de stock.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-07: dos consumidores compran a la vez la última unidad; solo uno lo logra",
+          "proyecto": "api",
+          "archivo": "api/pedidos.spec.js",
+          "estado": "passed",
+          "duracionMs": 288
+        }
+      ]
+    },
+    {
+      "id": "CP-08",
+      "cu": "CU-13",
+      "tipo": "Sistema",
+      "modo": "api",
+      "prueba": "Avanzar un pedido por todos sus estados e intentar saltar uno.",
+      "esperado": "Cambios registrados con fecha; el salto se bloquea.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-08: avanza por todos los estados con fecha y el salto se bloquea",
+          "proyecto": "api",
+          "archivo": "api/pedidos.spec.js",
+          "estado": "passed",
+          "duracionMs": 442
+        }
+      ]
+    },
+    {
+      "id": "CP-09",
+      "cu": "CU-05",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Enviar un mensaje en un pedido activo.",
+      "esperado": "Llega en tiempo real con su hora.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 3,
+      "total": 3,
+      "mediciones": [
+        "Entrega por WebSocket: p50 9 ms · p95 83 ms (10 mensajes)",
+        "Mensaje visible en el otro teléfono: 86 ms · 84 ms · 73 ms (p95 86 ms)"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-09: el mensaje llega en tiempo real con su hora",
+          "proyecto": "api",
+          "archivo": "api/comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 725
+        },
+        {
+          "titulo": "CU-05: un tercero no lee el chat y con el pedido entregado queda en solo lectura",
+          "proyecto": "api",
+          "archivo": "api/comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 528
+        },
+        {
+          "titulo": "CP-09 (UI): el mensaje llega en tiempo real al otro teléfono con su hora",
+          "proyecto": "ui",
+          "archivo": "ui/pedidos_comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 4608
+        }
+      ]
+    },
+    {
+      "id": "CP-10",
+      "cu": "CU-06",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Calificar dos veces el mismo pedido entregado.",
+      "esperado": "Solo se guarda la primera calificación.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-10: calificar dos veces el mismo pedido entregado guarda solo la primera",
+          "proyecto": "api",
+          "archivo": "api/comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 386
+        },
+        {
+          "titulo": "CP-10 (UI): calificar un pedido entregado; la segunda calificación no se guarda",
+          "proyecto": "ui",
+          "archivo": "ui/pedidos_comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 4139
+        }
+      ]
+    },
+    {
+      "id": "CP-11",
+      "cu": "CU-07",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Consultar el panel con pedidos entregados en el mes.",
+      "esperado": "Cifras iguales a la suma de los pedidos.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-11: las cifras del mes son iguales a la suma de los pedidos entregados",
+          "proyecto": "api",
+          "archivo": "api/comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 1249
+        },
+        {
+          "titulo": "CP-11 (UI): el panel muestra cifras iguales a la suma de los pedidos entregados",
+          "proyecto": "ui",
+          "archivo": "ui/pedidos_comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 2495
+        }
+      ]
+    },
+    {
+      "id": "CP-12",
+      "cu": "RNF-02",
+      "tipo": "Usabilidad",
+      "modo": "manual",
+      "prueba": "Usuarios de la asociación publican y compran sin ayuda.",
+      "esperado": "≥ 80 % de éxito y SUS ≥ 68.",
+      "comoSeEjecuta": "Piloto (docs/piloto/): guion de tareas y cuestionario SUS; npm run sus calcula el puntaje.",
+      "veredicto": "MANUAL",
+      "proyectos": [],
+      "pasadas": 0,
+      "total": 0,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": []
+    },
+    {
+      "id": "CP-13",
+      "cu": "CU-10",
+      "tipo": "Sistema",
+      "modo": "api",
+      "prueba": "Editar precio y cantidad de una publicación y luego llevar la cantidad a 0.",
+      "esperado": "Catálogo actualizado; con 0 pasa a «Agotada»; los pedidos previos conservan su precio.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-13: editar precio y cantidad; con 0 pasa a Agotada y sale del catálogo; el pedido previo conserva su precio",
+          "proyecto": "api",
+          "archivo": "api/catalogo.spec.js",
+          "estado": "passed",
+          "duracionMs": 346
+        }
+      ]
+    },
+    {
+      "id": "CP-14",
+      "cu": "CU-15",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Consultar «Mis pedidos» con pedidos en distintos estados.",
+      "esperado": "Aparecen los activos con su estado vigente.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-14: aparecen los pedidos activos con su estado vigente",
+          "proyecto": "api",
+          "archivo": "api/pedidos.spec.js",
+          "estado": "passed",
+          "duracionMs": 647
+        },
+        {
+          "titulo": "CP-14 (UI): «Mis pedidos» muestra los activos con su estado vigente y se actualiza en vivo",
+          "proyecto": "ui",
+          "archivo": "ui/pedidos_comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 1858
+        }
+      ]
+    },
+    {
+      "id": "CP-15",
+      "cu": "CU-16",
+      "tipo": "Sistema",
+      "modo": "manual",
+      "prueba": "Confirmar un pedido con la app del productor cerrada.",
+      "esperado": "El productor recibe la notificación push y, al tocarla, se abre el pedido.",
+      "comoSeEjecuta": "Requiere el APK con Firebase en un teléfono. La entrega a FCM, los reintentos y los tokens vencidos se prueban en api/tests/integration/push.test.js.",
+      "veredicto": "MANUAL",
+      "proyectos": [],
+      "pasadas": 0,
+      "total": 0,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": []
+    },
+    {
+      "id": "CP-16",
+      "cu": "CU-04 · RNF-10",
+      "tipo": "Integración",
+      "modo": "api",
+      "prueba": "Reenviar POST /api/v1/pedidos con la misma Idempotency-Key.",
+      "esperado": "200 con el mismo comprobante; un solo pedido; stock descontado una vez.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-16: reenviar con la misma Idempotency-Key devuelve el mismo comprobante y descuenta una vez",
+          "proyecto": "api",
+          "archivo": "api/pedidos.spec.js",
+          "estado": "passed",
+          "duracionMs": 309
+        }
+      ]
+    },
+    {
+      "id": "CP-17",
+      "cu": "CU-17",
+      "tipo": "Integración",
+      "modo": "api+ui",
+      "prueba": "Editar una publicación sin conexión mientras su versión cambia en el servidor y reconectar.",
+      "esperado": "La operación queda «Con error» por conflicto; prevalece el servidor y se informa al usuario.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 4,
+      "total": 4,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-17: edición sin conexión con versión vieja → «Con error»; prevalece el servidor",
+          "proyecto": "api",
+          "archivo": "api/sincronizacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 135
+        },
+        {
+          "titulo": "RNF-03: una operación válida se aplica una sola vez aunque se reenvíe",
+          "proyecto": "api",
+          "archivo": "api/sincronizacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 261
+        },
+        {
+          "titulo": "CU-17 paso 4: /sync/pull trae lo cambiado desde la última marca",
+          "proyecto": "api",
+          "archivo": "api/sincronizacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 239
+        },
+        {
+          "titulo": "CP-17 (UI): editar sin conexión mientras cambia la versión → «Con error» y prevalece el servidor",
+          "proyecto": "ui",
+          "archivo": "ui/pedidos_comunicacion.spec.js",
+          "estado": "passed",
+          "duracionMs": 4091
+        }
+      ]
+    },
+    {
+      "id": "CP-18",
+      "cu": "CU-22",
+      "tipo": "Sistema",
+      "modo": "api",
+      "prueba": "Pagar en línea con la tarjeta aprobada y luego con la rechazada.",
+      "esperado": "Aprobada: pago aprobado y el productor puede aceptar. Rechazada: se puede reintentar o cambiar a contra entrega.",
+      "comoSeEjecuta": "Automático con eventos firmados con el secreto de pruebas (equivalentes a los del sandbox). El recorrido por la página de Wompi se hace a mano con las tarjetas de prueba del sandbox.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-18 (aprobada): el pago queda aprobado y el productor puede aceptar",
+          "proyecto": "api",
+          "archivo": "api/pagos.spec.js",
+          "estado": "passed",
+          "duracionMs": 661
+        },
+        {
+          "titulo": "CP-18 (rechazada): se puede reintentar con otra referencia o cambiar a contra entrega",
+          "proyecto": "api",
+          "archivo": "api/pagos.spec.js",
+          "estado": "passed",
+          "duracionMs": 437
+        }
+      ]
+    },
+    {
+      "id": "CP-19",
+      "cu": "CU-22 · RNF-04",
+      "tipo": "Seguridad",
+      "modo": "api",
+      "prueba": "Enviar a POST /api/v1/pagos/wompi/eventos un evento con la firma alterada y repetir un evento válido.",
+      "esperado": "El alterado se rechaza (401) sin cambios; el repetido no se procesa dos veces.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api"
+      ],
+      "pasadas": 1,
+      "total": 1,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-19: firma alterada → 401 sin cambios; evento repetido → no se reprocesa",
+          "proyecto": "api",
+          "archivo": "api/pagos.spec.js",
+          "estado": "passed",
+          "duracionMs": 248
+        }
+      ]
+    },
+    {
+      "id": "CP-20",
+      "cu": "CU-08",
+      "tipo": "Seguridad",
+      "modo": "api+ui",
+      "prueba": "Recuperar la contraseña con el código enviado al correo; probar código errado, vencido y contraseña débil.",
+      "esperado": "Mensaje neutro; código de un solo uso (15 min, 3 intentos); nueva contraseña y sesiones anteriores cerradas.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [
+        "Código en el buzón en 0 ms"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-20: código por correo de un solo uso; errado, débil y sesiones anteriores cerradas",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 574
+        },
+        {
+          "titulo": "CP-20 (UI): recuperar la contraseña con el código del correo y entrar con la nueva",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 4487
+        }
+      ]
+    },
+    {
+      "id": "CP-21",
+      "cu": "CU-09",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Editar celular, municipio y ubicación del perfil; intentar un celular de otra cuenta y cambiar el rol.",
+      "esperado": "Datos guardados con coordenadas recalculadas y bitácora; celular en uso y cambio de rol rechazados.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-21: actualiza contacto y ubicación; celular en uso y cambio de rol se rechazan",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 358
+        },
+        {
+          "titulo": "CP-21 (UI): editar el perfil; el celular de otra cuenta se marca en el campo",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 4018
+        }
+      ]
+    },
+    {
+      "id": "CP-22",
+      "cu": "CU-20",
+      "tipo": "Privacidad",
+      "modo": "api+ui",
+      "prueba": "Consultar los datos y la autorización; solicitar la supresión con y sin pedidos en curso.",
+      "esperado": "Con pedidos en curso queda aplazada; sin ellos la cuenta se anonimiza, se cierra la sesión y los pedidos se conservan sin identificación.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-22: supresión aplazada con pedidos en curso; sin ellos anonimiza y conserva la transacción",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 653
+        },
+        {
+          "titulo": "CP-22 (UI): consultar mis datos y pedir que los borren; la sesión se cierra",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 5770
+        }
+      ]
+    },
+    {
+      "id": "CP-23",
+      "cu": "CU-10",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Pausar, reactivar y retirar una publicación; retirar con un pedido en curso.",
+      "esperado": "Pausada no aparece en el catálogo; retirar con pedidos en curso se bloquea; retirada conserva el histórico.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-23: pausar oculta; retirar con pedido en curso se bloquea; retirar conserva el histórico",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 670
+        },
+        {
+          "titulo": "CP-23 (UI): pausar y reactivar una publicación desde «Mis productos»",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 4284
+        }
+      ]
+    },
+    {
+      "id": "CP-24",
+      "cu": "CU-11",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Buscar «cafe» y «ocanera» (sin tildes) y ordenar por precio; buscar algo inexistente.",
+      "esperado": "Encuentra en nombre y descripción sin distinguir tildes; respeta el orden y los filtros; sin resultados sugiere categorías.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [
+        "Búsqueda «cafe» respondió en 69 ms",
+        "Resultados de la búsqueda visibles en 269 ms"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-24: búsqueda sin tildes en nombre y descripción, orden por precio y sugerencias",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 354
+        },
+        {
+          "titulo": "CP-24 (UI): buscar sin tildes, ordenar por precio y recibir sugerencias",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 4766
+        }
+      ]
+    },
+    {
+      "id": "CP-25",
+      "cu": "CU-12",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Activar «Cerca de mí» con la ubicación del teléfono y con la del perfil; fijar un radio sin productores.",
+      "esperado": "Ordena de menor a mayor distancia mostrando los km; el radio filtra y propone ampliarlo.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [
+        "Distancias desde Ocaña: Ocaña 0.7 km · Pamplona 123 km"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-25: «Cerca de mí» ordena por distancia con el GPS o el perfil y respeta el radio",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 470
+        },
+        {
+          "titulo": "CP-25 (UI): «Cerca de mí» muestra primero lo más cercano con los km y filtra por radio",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 5520
+        }
+      ]
+    },
+    {
+      "id": "CP-26",
+      "cu": "CU-14",
+      "tipo": "Integración",
+      "modo": "api+ui",
+      "prueba": "Cancelar un pedido aceptado; cancelar a la vez desde ambas partes; cancelar uno entregado.",
+      "esperado": "Inventario restituido una sola vez, historial con motivo, chat en solo lectura, aviso a la contraparte; el entregado no se cancela.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-26: cancelar un pedido aceptado restituye el inventario una vez; el entregado no se cancela",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 514
+        },
+        {
+          "titulo": "CP-26 (UI): el consumidor cancela un pedido aceptado y el productor recibe el aviso",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 7186
+        }
+      ]
+    },
+    {
+      "id": "CP-27",
+      "cu": "CU-15",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Consultar el historial con filtros de estado (activos, finalizados) y de fechas.",
+      "esperado": "Pedidos del más reciente al más antiguo según el filtro, con detalle, historial y acciones disponibles.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-27: historial con filtros de estado y fechas, del más reciente al más antiguo",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 556
+        },
+        {
+          "titulo": "CP-27 (UI): «Mis pedidos» separa activos y finalizados y filtra por periodo",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 4175
+        }
+      ]
+    },
+    {
+      "id": "CP-28",
+      "cu": "CU-16",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Aceptar, escribir y cancelar un pedido con la otra parte conectada.",
+      "esperado": "Cada aviso llega en tiempo real y queda en la bandeja con lo necesario para abrir el pedido o el chat.",
+      "comoSeEjecuta": "La entrega a FCM (app cerrada) requiere el APK en un teléfono; la bandeja y el WebSocket se prueban aquí.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [
+        "Tres avisos entregados por WebSocket en 20 ms"
+      ],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-28: aceptar, escribir y cancelar llegan en tiempo real y quedan en la bandeja",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 245
+        },
+        {
+          "titulo": "CP-28 (UI): los avisos quedan en la bandeja y el del mensaje abre el chat",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 3382
+        }
+      ]
+    },
+    {
+      "id": "CP-29",
+      "cu": "CU-19",
+      "tipo": "Sistema",
+      "modo": "api+ui",
+      "prueba": "Reportar una publicación y repetir el mismo reporte; motivo «Otro» sin descripción.",
+      "esperado": "Reporte «Pendiente»; el repetido se informa en trámite; «Otro» exige descripción.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-29: reportar una publicación; el repetido está en trámite y «Otro» exige descripción",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 207
+        },
+        {
+          "titulo": "CP-29 (UI): reportar una publicación; «Otro» exige descripción y el repetido queda en trámite",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 3819
+        }
+      ]
+    },
+    {
+      "id": "CP-30",
+      "cu": "CU-18",
+      "tipo": "Seguridad",
+      "modo": "api+ui",
+      "prueba": "Revisar un reporte en el panel y ocultar la publicación; suspender una cuenta con pedidos en curso; entrar al panel sin ser administrador.",
+      "esperado": "Medida aplicada, registrada en bitácora y notificada; la suspensión pide confirmación y cierra la sesión; el acceso sin rol se niega y se registra.",
+      "veredicto": "PASA",
+      "proyectos": [
+        "api",
+        "ui"
+      ],
+      "pasadas": 2,
+      "total": 2,
+      "mediciones": [],
+      "fallas": [],
+      "pruebas": [
+        {
+          "titulo": "CP-30: el administrador oculta lo reportado y suspende con confirmación; un no administrador no entra",
+          "proyecto": "api",
+          "archivo": "api/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 406
+        },
+        {
+          "titulo": "CP-30 (UI): el administrador revisa el reporte en el panel web y oculta la publicación",
+          "proyecto": "ui",
+          "archivo": "ui/fase2.spec.js",
+          "estado": "passed",
+          "duracionMs": 5328
+        }
+      ]
+    }
+  ],
+  "rnf": [
+    {
+      "titulo": "RNF-04: cabeceras de seguridad, sin X-Powered-By y rutas protegidas exigen JWT",
+      "proyecto": "api",
+      "archivo": "api/cuentas.spec.js",
+      "etiquetas": [
+        "RNF-04"
+      ],
+      "estado": "passed",
+      "esperado": "passed",
+      "duracionMs": 19,
+      "mediciones": [],
+      "error": null
+    }
+  ]
+}
