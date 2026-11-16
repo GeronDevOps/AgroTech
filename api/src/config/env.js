@@ -77,6 +77,15 @@ const config = Object.freeze({
     urlRetorno: process.env.WOMPI_URL_RETORNO || '',                 // p. ej. https://api.agrotech.co/api/v1/pagos/retorno
     retornoApp: process.env.WOMPI_RETORNO_APP || 'agrotech://pago',  // a dónde redirige /pagos/retorno
   }),
+  // CU-08, CU-18, CU-20: correo saliente. "memoria" en pruebas automáticas; "consola" en desarrollo.
+  correo: Object.freeze({
+    driver: unoDe('CORREO_DRIVER', process.env.CORREO_DRIVER || (isTest ? 'memoria' : 'consola'), ['consola', 'archivo', 'memoria', 'smtp']),
+    dir: process.env.CORREO_DIR ? path.resolve(process.env.CORREO_DIR) : '',
+    remitente: process.env.CORREO_REMITENTE || 'AgroTech <no-responder@agrotech.co>',
+    smtpUrl: process.env.CORREO_SMTP_URL || '',
+  }),
+  // CU-08: vigencia del código de recuperación y número de intentos.
+  recuperacion: Object.freeze({ minutosVigencia: 15, intentosMaximos: 3, segundosEntreEnvios: 60 }),
   // RF-16a: ruta al JSON de la cuenta de servicio de Firebase (FCM HTTP v1). Vacía = avisos push desactivados.
   fcmCredenciales: process.env.FCM_CREDENCIALES || '',
   horasCancelacionAutomatica: toInt('HORAS_CANCELACION', process.env.HORAS_CANCELACION, 48),

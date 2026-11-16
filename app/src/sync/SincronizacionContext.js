@@ -4,7 +4,7 @@ import { useConexion } from '../hooks/useConexion';
 import { leerMeta } from '../local/baseLocal';
 import { borrarFotosCola, guardarFotosCola } from '../local/archivosCola';
 import {
-  descartarOperacion, encolarCreacion, encolarEdicion, encolarPublicacion, operacionesEnCola, reintentarOperacion, resumenCola,
+  descartarOperacion, encolarCreacion, encolarEdicion, encolarPublicacion, operacionesEnCola, reintentarOperacion, resumenCola, encolarOperacion,
 } from '../local/cola';
 import { sincronizarAhora } from './motor';
 
@@ -114,6 +114,21 @@ export function SincronizacionProvider({ children }) {
     /** CU-06 A3: la calificación se guarda en el teléfono y se sincroniza después. */
     async calificarDespues(idPedido, datos) {
       await encolarCreacion('CALIFICACION', idPedido, datos);
+      await despuesDeEncolar();
+    },
+    /** CU-10 A4: pausar, reactivar o retirar sin señal. */
+    async estadoDespues(producto, accion) {
+      await encolarOperacion('PRODUCTO', 'ESTADO', producto.id, { accion, version: producto.version });
+      await despuesDeEncolar();
+    },
+    /** CU-09 A3: datos del perfil cambiados sin señal. */
+    async perfilDespues(idUsuario, cambios) {
+      await encolarOperacion('PERFIL', 'EDITAR', idUsuario, cambios);
+      await despuesDeEncolar();
+    },
+    /** CU-19 A3: el reporte se guarda y se envía al reconectar. */
+    async reporteDespues(idReporte, reporte) {
+      await encolarOperacion('REPORTE', 'CREAR', idReporte, reporte);
       await despuesDeEncolar();
     },
     /** CU-17 A1. */

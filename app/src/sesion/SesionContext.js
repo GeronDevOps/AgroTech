@@ -10,7 +10,7 @@ import { desregistrarPush } from '../notificaciones/push';
  * - Al abrir la app restaura la sesión SIN depender de la red (usuarios rurales con mala señal)
  *   y la valida en segundo plano con GET /auth/yo: solo un 401 la cierra.
  */
-export const ROLES = Object.freeze({ PRODUCTOR: 'PRODUCTOR', CONSUMIDOR: 'CONSUMIDOR' });
+export const ROLES = Object.freeze({ PRODUCTOR: 'PRODUCTOR', CONSUMIDOR: 'CONSUMIDOR', ADMINISTRADOR: 'ADMINISTRADOR' });
 
 const SesionContext = createContext(null);
 
@@ -28,8 +28,8 @@ export function SesionProvider({ children }) {
     await borrarDatosLocales().catch(() => {}); // copia local y cola del usuario que sale
   }, []);
 
-  const abrir = useCallback(async ({ token, expiraEn, usuario }) => {
-    const nueva = { token, expiraEn, usuario };
+  const abrir = useCallback(async ({ token, expiraEn, usuario, requiereAutorizacion = false, versionAviso = null }) => {
+    const nueva = { token, expiraEn, usuario, requiereAutorizacion, versionAviso };
     await guardarSesion(nueva);
     establecerToken(token);
     setSesion(nueva);
@@ -52,9 +52,10 @@ export function SesionProvider({ children }) {
       setSesion(guardada);
       setCargando(false);
       try {
-        const { usuario } = await api.yo(); // refresca nombre/municipio; un 401 dispara cerrarSesion
+        // refresca nombre/municipio y si hay un aviso de privacidad nuevo (CU-20 A3); un 401 dispara cerrarSesion
+        const { usuario, requiereAutorizacion = false, versionAviso = null } = await api.yo();
         if (activo) {
-          const actualizada = { ...guardada, usuario };
+          const actualizada = { ...guardada, usuario, requiereAutorizacion, versionAviso };
           setSesion(actualizada);
           await guardarSesion(actualizada);
         }
@@ -74,6 +75,24 @@ export function SesionProvider({ children }) {
     },
     async registrar(datos) {
       return abrir(await api.registrar(datos));
+    },
+    /** CU-08: tras restablecer la contraseña la API devuelve una sesión nueva. */
+    abrirSesion: abrir,
+    /** CU-09: el perfil cambió (nombre, celular, municipio…). */
+    async actualizarUsuario(cambios) {
+      if (!sesion) return;
+      const actualizada = { ...sesion, usuario: { ...sesion.usuario, ...cambios } };
+      setSesion(actualizada);
+      await guardarSesion(actualizada);
+    },
+    /** CU-20 A3: aviso de privacidad nuevo pendiente de aceptar. */
+    requiereAutorizacion: !!(sesion && sesion.requiereAutorizacion),
+    versionAviso: sesion ? sesion.versionAviso : null,
+    async aceptarAviso() {
+      const r = await api.aceptarAviso(sesion.versionAviso);
+      const actualizada = { ...sesion, usuario: r.usuario, requiereAutorizacion: false };
+      setSesion(actualizada);
+      await guardarSesion(actualizada);
     },
     cerrarSesion,
   }), [sesion, cargando, abrir, cerrarSesion]);

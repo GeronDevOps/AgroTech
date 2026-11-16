@@ -355,3 +355,80 @@ Un disparador en la BD rechaza mensajes de pedidos cerrados o de quien no es par
 
 Latido cada 30 s (ping/pong); la app reconecta con espera creciente hasta 30 s.
 
+
+---
+
+# Fase 2 del SRS · v1.1.0 (AGRO-22 … AGRO-29)
+
+Todas las rutas usan el formato de error `{ error: { codigo, mensaje, detalles? } }`. Desde la v1.1.0 el JWT lleva `sv` (versión de sesión): restablecer la contraseña, suspender la cuenta o suprimir los datos incrementa la versión y los tokens anteriores reciben **401 SESION_EXPIRADA**.
+
+## Cuenta · CU-08 y CU-20 A3
+
+| Método y ruta | Auth | Cuerpo | Respuestas |
+|---|---|---|---|
+| `POST /auth/recuperar` | pública | `{ correo }` | 202 mensaje neutro (exista o no la cuenta). Código de 6 dígitos por correo, 15 min, máx. 1 envío por minuto |
+| `POST /auth/restablecer` | pública | `{ correo, codigo, contrasena }` | 200 sesión nueva · 400 `CODIGO_INCORRECTO` (`detalles.intentosRestantes`), `CODIGO_AGOTADO` (3 intentos), `CODIGO_VENCIDO`, `CODIGO_INVALIDO`, `DATOS_INVALIDOS` (política de contraseña) |
+| `POST /auth/autorizacion` | JWT | `{ version }` | 200 perfil; acepta el aviso de privacidad vigente. `POST /auth/sesion` y `GET /auth/yo` devuelven `requiereAutorizacion` y `versionAviso` |
+
+## Perfil y privacidad · CU-09 y CU-20
+
+| Método y ruta | Auth | Cuerpo | Respuestas |
+|---|---|---|---|
+| `GET /perfil` | JWT | — | `{ perfil }` con `ubicacion: { lat, lon, origen: MUNICIPIO \| TELEFONO }` |
+| `PATCH /perfil` | JWT | parcial: `nombres, apellidos, correo, telefono, municipio, veredaDireccion, ubicacion{lat,lon}` | 200 · 409 `ROL_NO_EDITABLE` (si llega `rol`) · 409 `DATO_EN_USO` (`detalles.campo`) · 400 |
+| `PUT /perfil/foto` | JWT | multipart `foto` (JPEG ≤ 300 KB) | 200 `{ perfil }` |
+| `GET /privacidad` | JWT | — | datos, finalidades, autorizaciones, `supresion { solicitud, consecuencias, plazoDiasHabiles }`, `pedidosEnCurso` |
+| `POST /privacidad/supresion` | JWT | `{ confirmar: true, motivo? }` | 200 `COMPLETADA` (cuenta anonimizada, `sesionCerrada: true`) · 202 `APLAZADA` (pedidos en curso) · 409 `SOLICITUD_EN_TRAMITE` |
+| `DELETE /privacidad/supresion` | JWT | — | 200 `DESISTIDA` · 404 |
+
+## Publicaciones, búsqueda y cercanía · CU-10, CU-11, CU-12
+
+| Método y ruta | Auth | Cuerpo / consulta | Respuestas |
+|---|---|---|---|
+| `PATCH /productos/{id}` | productor | además de precio y stock: `nombre`, `descripcion` (con `version`) | igual que RF-10a |
+| `PATCH /productos/{id}/estado` | productor | `{ accion: PAUSAR \| REACTIVAR \| RETIRAR, version }` | 200 · 409 `PEDIDOS_EN_CURSO` (no se retira), `ESTADO_NO_PERMITIDO`, `CONFLICTO_VERSION` |
+| `GET /productos` | JWT | `q` (≥ 3, sin tildes), `orden = recientes \| precio_asc \| precio_desc \| calificacion \| cercania`, `lat`, `lon`, `radioKm` (1–300) | agrega `orden`, `ubicacion { origen: TELEFONO \| PERFIL }`, `distanciaKm` por producto, `sugerencias` (sin resultados) y `ampliarRadio` |
+
+## Pedidos · CU-14 y CU-15
+
+| Método y ruta | Auth | Cuerpo / consulta | Respuestas |
+|---|---|---|---|
+| `POST /pedidos/{id}/cancelar` | partes | `{ motivo, version? }` | 200 (inventario restituido, aviso a la contraparte, chat cerrado; `reembolsoPendiente` si estaba pagado) · 409 `PEDIDO_ENTREGADO`, `YA_CANCELADO` |
+| `GET /pedidos` | JWT | `estado = activos \| finalizados \| todos \| ESTADO[,ESTADO]`, `desde`, `hasta` (AAAA-MM-DD), `pagina` | `{ pedidos, pagina, total, hayMas }` |
+| `GET /pedidos/{id}` | partes | — | agrega `acciones` (CHAT, CANCELAR, ACEPTAR, RECHAZAR, DESPACHAR, ENTREGAR, CALIFICAR, REPORTAR) |
+
+## Avisos · CU-16
+
+| Método y ruta | Auth | Respuestas |
+|---|---|---|
+| `GET /notificaciones?pagina` | JWT | `{ notificaciones: [{ id, tipo, titulo, cuerpo, datos, fecha, leida }], sinLeer }` |
+| `POST /notificaciones/leidas` | JWT | `{ ids? }` → `{ marcadas }` |
+
+Tipos: `PEDIDO_NUEVO`, `PEDIDO_PAGADO`, `PEDIDO_ACEPTADO`, `PEDIDO_EN_CAMINO`, `PEDIDO_ENTREGADO`, `PEDIDO_CANCELADO`, `MENSAJE` (`datos.abrir = CHAT`), `REPORTE_RESUELTO`, `ADVERTENCIA`, `CONTENIDO_OCULTO`, `VERIFICADO`, `CUENTA_REACTIVADA`. El WebSocket envía `{ tipo: 'notificacion', notificacion }`.
+
+## Reportes · CU-19
+
+| Método y ruta | Auth | Cuerpo | Respuestas |
+|---|---|---|---|
+| `POST /reportes` | JWT | `{ tipoContenido: PRODUCTO \| CALIFICACION \| PEDIDO, idContenido, motivo, descripcion?, id? }` | 201 · 409 `REPORTE_EN_TRAMITE`, `REPORTE_PROPIO` · 400 («Otro» sin descripción) |
+| `GET /reportes/mios` | JWT | — | `{ reportes, motivos }` |
+
+Motivos: `PUBLICACION_ENGANOSA`, `PRECIO_ABUSIVO`, `CONTENIDO_OFENSIVO`, `INCUMPLIMIENTO_ENTREGA`, `FRAUDE`, `OTRO`.
+
+## Panel de administración · CU-18 (rol ADMINISTRADOR)
+
+Un usuario sin el rol recibe **403** y el intento queda en la bitácora (`ACCESO_DENEGADO`). La cuenta se crea con `npm run crear-admin`.
+
+| Método y ruta | Descripción |
+|---|---|
+| `GET /admin/resumen` | Reportes abiertos, productores por verificar, suspendidas, supresiones, totales |
+| `GET /admin/reportes?estado=abiertos\|PENDIENTE\|EN_REVISION\|RESUELTO\|DESESTIMADO\|todos` | Lista del más antiguo al más reciente |
+| `GET /admin/reportes/{id}` | Contenido + historial del reportado y del reportante; pasa a `EN_REVISION` |
+| `POST /admin/reportes/{id}/resolver` | `{ decision: DESESTIMAR \| OCULTAR \| SUSPENDER, resolucion, malintencionado?, confirmar? }` · 409 `REQUIERE_CONFIRMACION` si hay pedidos en curso |
+| `GET /admin/usuarios?q&rol&estado&verificado`, `GET /admin/usuarios/{id}` | Búsqueda y detalle con historial |
+| `POST /admin/usuarios/{id}/verificar` · `/suspender` · `/reactivar` | Verificación (CU-18 paso 4), suspensión `{ motivo, confirmar? }` y reactivación |
+| `GET /admin/supresiones` · `GET /admin/bitacora?limite` | Solicitudes CU-20 y auditoría |
+
+## Operaciones nuevas de `/sync/push`
+
+`PRODUCTO.ESTADO` (CU-10 A4), `PERFIL.EDITAR` (CU-09 A3) y `REPORTE.CREAR` (CU-19 A3, `idEntidad` = id del reporte generado en el teléfono).

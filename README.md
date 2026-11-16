@@ -45,9 +45,11 @@ cd api
 cp .env.example .env          # ajustar DATABASE_URL y generar JWT_SECRETO (ver el comentario del archivo)
 npm install
 npm run migrate               # aplica /db/migrations
-npm run dev                   # http://localhost:3000/api/v1/salud
+npm run dev                   # http://localhost:3000/api/v1/salud (aplica solo las migraciones pendientes al arrancar)
 npm test                      # pruebas unitarias y de integración
 npm run sembrar               # datos de demostración (cuentas *@demo.agrotech.co, contraseña cosecha2026)
+ADMIN_CONTRASENA='claveSegura2026' npm run crear-admin -- --correo admin@asociacion.co --telefono 3001234567 --municipio Pamplona
+                              # cuenta del panel de administración (CU-18); entra por la app web
 ```
 
 Pago en línea (RF-21, [ADR-001](docs/decisiones/ADR-001-pasarela-de-pago.md)): sin estas variables la API responde `503 PASARELA_NO_CONFIGURADA` y la app ofrece solo contra entrega.
@@ -78,11 +80,28 @@ El chat y los avisos dentro de la app usan el WebSocket de la API (`/ws`, mismo 
 
 ```bash
 cd app
-cp .env.example .env          # EXPO_PUBLIC_API_URL con la IP del computador
+cp .env.example .env          # EXPO_PUBLIC_API_URL=auto: la API se busca en el mismo computador que sirve la app
 npm install
-npm start                     # escanear el QR con Expo Go
+npm start                     # escanear el QR con Expo Go (SDK 58)
 npm test
 ```
+
+En Windows, `herramientas\windows\iniciar-agrotech.cmd` abre la API y la app en dos ventanas, y
+`herramientas\windows\permitir-firewall.cmd` (como administrador, una sola vez) deja entrar al teléfono por los puertos 3000 y 8081.
+
+### Solución de problemas: «No hay conexión con el servidor»
+
+En desarrollo, la pantalla de bienvenida muestra a qué dirección intenta llegar la app y qué revisar.
+El detalle de cada error (síntoma, causa raíz, solución y verificación) está en [docs/pruebas/REGISTRO_DE_ERRORES.md](docs/pruebas/REGISTRO_DE_ERRORES.md).
+
+| Mensaje en la bienvenida / consola de la API | Causa | Solución |
+|---|---|---|
+| `Servidor: sin conexión con http://…:3000` | La API está apagada, el teléfono está en otra red o el Firewall de Windows bloquea el puerto 3000 | `npm run dev` en `api`; misma red Wi-Fi; `permitir-firewall.cmd` |
+| `Servidor encendido … pero sin base de datos` / `[db] NO se pudo conectar a PostgreSQL` | PostgreSQL (o su contenedor de Docker) apagado o `DATABASE_URL` errada | Encender PostgreSQL; la API reintenta cada 10 s |
+| Error inesperado al iniciar sesión con la base de una versión anterior | Faltaba la migración 006 | Ya no ocurre: la API aplica las pendientes al arrancar (`AUTO_MIGRAR=false` lo desactiva) |
+| `La migración 001 … cambió después de aplicarse` | Archivos SQL con saltos de línea de Windows (CRLF) | Corregido: el checksum ignora CRLF/LF |
+| Pantalla en blanco al navegar sin señal en la vista web | Expo SDK 58 carga cada pantalla por separado en web | `asyncRoutes: false` en `app.json` |
+| `Project is incompatible with this version of Expo Go` | Expo Go del teléfono es SDK 58 | El proyecto ya está en SDK 58 |
 
 Modo sin conexión (AGRO-10): la app guarda su copia local en SQLite (`expo-sqlite`). En las pruebas, `expo-sqlite`
 se reemplaza por el SQLite de Node 22 (`node:sqlite`, en memoria), así que el SQL de la base local se prueba tal cual.

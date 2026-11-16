@@ -16,14 +16,18 @@ const { pool } = require('./pool');
 const LOCK_ID = 727301; // identificador arbitrario del advisory lock
 const FILE_RE = /^(\d{3})_[a-z0-9_]+\.sql$/;
 
+const sha256 = (texto) => crypto.createHash('sha256').update(texto).digest('hex');
+
 async function listMigrations(dir) {
   const files = (await fs.readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
   const bad = files.filter((f) => !FILE_RE.test(f));
   if (bad.length) throw new Error(`Nombre de migración inválido: ${bad.join(', ')} (formato NNN_descripcion.sql)`);
   return Promise.all(files.map(async (name) => {
     const sql = await fs.readFile(path.join(dir, name), 'utf8');
-    const checksum = crypto.createHash('sha256').update(sql).digest('hex');
-    return { version: name.slice(0, 3), name, sql, checksum };
+    // El checksum se calcula con saltos de línea LF: el mismo archivo clonado en Windows (CRLF) no cuenta como "editado".
+    const lf = sql.replace(/\r\n/g, '\n');
+    const checksum = sha256(lf);
+    return { version: name.slice(0, 3), name, sql, checksum, equivalentes: [checksum, sha256(sql), sha256(lf.replace(/\n/g, '\r\n'))] };
   }));
 }
 
@@ -46,7 +50,7 @@ async function migrate({ dir = config.migrationsDir, log = console.log } = {}) {
     for (const m of migrations) {
       const prev = applied.get(m.version);
       if (prev) {
-        if (prev.checksum !== m.checksum) {
+        if (!m.equivalentes.includes(prev.checksum.trim())) {
           throw new Error(`La migración ${m.name} cambió después de aplicarse. Cree una migración nueva en lugar de editarla.`);
         }
         continue;
@@ -82,4 +86,11 @@ if (require.main === module) {
     });
 }
 
-module.exports = { migrate, listMigrations };
+/** Versiones de migración que existen en db/migrations y aún no se han aplicado. */
+async function pendientes({ dir = config.migrationsDir } = {}) {
+  const { rows } = await pool.query(`SELECT to_regclass('schema_migrations') IS NOT NULL AS existe`);
+  const aplicadas = rows[0].existe ? new Set((await pool.query('SELECT version FROM schema_migrations')).rows.map((r) => r.version)) : new Set();
+  return (await listMigrations(dir)).filter((m) => !aplicadas.has(m.version)).map((m) => m.name);
+}
+
+module.exports = { migrate, listMigrations, pendientes };

@@ -8,7 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const WebSocket = require('ws');
 const { expect } = require('@playwright/test');
-const { API } = require('../entorno');
+const { API, BUZON, ADMIN } = require('../entorno');
 
 const CONTRASENA = 'cosecha2026';
 const FOTOS = path.resolve(__dirname, '../fixtures');
@@ -111,6 +111,37 @@ const percentil = (valores, p) => {
   return o[Math.min(o.length - 1, Math.ceil((p / 100) * o.length) - 1)];
 };
 
+/** CP-20: último código de recuperación enviado a `correo` (buzón del driver "archivo" de la API local). */
+async function codigoRecuperacion(correo, { desde = 0, ms = 10_000 } = {}) {
+  const fin = Date.now() + ms;
+  while (Date.now() < fin) {
+    const archivos = fs.existsSync(BUZON) ? fs.readdirSync(BUZON).filter((f) => f.endsWith('.json')) : [];
+    const mios = archivos
+      .map((f) => { try { return JSON.parse(fs.readFileSync(path.join(BUZON, f), 'utf8')); } catch { return null; } }) // archivo de otra prueba aún en escritura
+      .filter((m) => m && m.para === correo && Date.parse(m.fecha) >= desde && /: (\d{6})$/.test(m.asunto))
+      .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+    if (mios.length) return /: (\d{6})$/.exec(mios[0].asunto)[1];
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new Error(`No llegó el código de recuperación a ${correo}`);
+}
+
+/** CP-30: sesión del administrador de pruebas. */
+async function entrarAdmin(request) {
+  const r = await request.post('auth/sesion', { data: { identificador: ADMIN.correo, contrasena: ADMIN.contrasena } });
+  expect(r.status(), 'Ejecute "npm run preparar" para crear el administrador de pruebas').toBe(200);
+  const b = await json(r);
+  return { token: b.token, usuario: b.usuario };
+}
+
+/** Lleva un pedido a ACEPTADO (CU-13) y lo devuelve actualizado. */
+async function aceptar(request, tokenProductor, pedido) {
+  const r = await cambiarEstado(request, tokenProductor, pedido, 'ACEPTADO');
+  expect(r.status(), await r.text()).toBe(200);
+  return (await json(r)).pedido;
+}
+
 module.exports = {
+  codigoRecuperacion, entrarAdmin, aceptar, BUZON, ADMIN,
   CONTRASENA, auth, uuid, json, crearCuenta, publicar, pedir, cambiarEstado, entregar, eventoWompi, conectarWs, percentil, foto,
 };

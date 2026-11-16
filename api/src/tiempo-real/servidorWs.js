@@ -20,6 +20,8 @@ const CIERRE = Object.freeze({ SIN_AUTENTICAR: 4001, TOKEN_INVALIDO: 4002, MENSA
  *     mensaje_nuevo       → ambas partes     { tipo: 'mensaje', mensaje }                   (CU-05 paso 3, CA-09)
  *     mensajes_leidos     → ambas partes     { tipo: 'mensajes_leidos', idPedido, idLector, ids }
  *     calificacion_nueva  → productor        { tipo: 'calificacion', idPedido, reputacion }
+ *     notificacion_nueva  → destinatario     { tipo: 'notificacion', notificacion }           (CU-16 A1, bandeja)
+ *     cuenta_cerrada      → titular          cierra sus conexiones (suspensión CU-18, supresión CU-20)
  */
 function createServidorTiempoReal({ server, pool, tokens, eventos, ruta = '/ws', plazoAutenticacionMs = PLAZO_AUTENTICACION_MS }) {
   const wss = new WebSocketServer({ server, path: ruta, maxPayload: 4 * 1024 });
@@ -93,6 +95,11 @@ function createServidorTiempoReal({ server, pool, tokens, eventos, ruta = '/ws',
     mensaje_nuevo: ({ mensaje, partes }) => enviarAPartes(partes, { tipo: 'mensaje', mensaje }),
     mensajes_leidos: ({ idPedido, idLector, ids, partes }) => enviarAPartes(partes, { tipo: 'mensajes_leidos', idPedido, idLector, ids }),
     calificacion_nueva: ({ idPedido, idProductor, reputacion }) => enviarA(idProductor, { tipo: 'calificacion', idPedido, reputacion }),
+    notificacion_nueva: ({ idUsuario, notificacion }) => enviarA(idUsuario, { tipo: 'notificacion', notificacion }),
+    cuenta_cerrada: ({ idUsuario }) => {
+      const destino = conexiones.get(idUsuario);
+      if (destino) for (const ws of destino) ws.close(CIERRE.TOKEN_INVALIDO, 'Sesión cerrada');
+    },
   };
   const oyentes = Object.entries(manejadores).map(([evento, fn]) => {
     const oyente = (datos) => Promise.resolve(fn(datos)).catch((err) => console.error(`[ws] ${evento}:`, err.message));

@@ -11,7 +11,7 @@ const campos = (fn) => {
 describe('validación de productos', () => {
   test('filtros: normaliza municipio y aplica valores por defecto', () => {
     expect(validarFiltros({ municipio: 'cucuta', categoria: 'frutas' })).toEqual({
-      municipio: 'Cúcuta', categoria: 'FRUTAS', pagina: 1, tamano: 20,
+      municipio: 'Cúcuta', categoria: 'FRUTAS', pagina: 1, tamano: 20, orden: 'recientes',
     });
     expect(campos(() => validarFiltros({ tamano: '80', pagina: '0' }))).toEqual(expect.objectContaining({ tamano: expect.any(String), pagina: expect.any(String) }));
   });

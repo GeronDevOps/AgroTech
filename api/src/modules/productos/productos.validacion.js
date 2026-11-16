@@ -9,6 +9,7 @@ const { CATEGORIAS, UNIDADES } = require('../../datos/catalogo');
  * Errores: 400 DATOS_INVALIDOS con { campos: { campo: mensaje } }.
  */
 
+const ORDENES_CATALOGO = ['recientes', 'precio_asc', 'precio_desc', 'calificacion', 'cercania'];
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PRECIO_MIN = 50;
 const PRECIO_MAX = 50_000_000;
@@ -84,7 +85,7 @@ function validarFotos({ foto, miniatura }, { maxBytes, maxBytesMiniatura }) {
   lanzarSiHay(errs);
 }
 
-/** RF-10a: precio y/o cantidad, con la versión leída para detectar conflictos. */
+/** RF-10a / RF-10: precio, cantidad, nombre y/o descripción, con la versión leída para detectar conflictos. */
 function validarEdicion(body = {}) {
   const errs = {};
   const version = numero(body.version);
@@ -92,9 +93,31 @@ function validarEdicion(body = {}) {
   const cambios = {};
   if (body.precio !== undefined) cambios.precio = validarPrecio(body.precio, errs);
   if (body.stock !== undefined) cambios.stock = validarStock(body.stock, errs, { permitirCero: true }); // A3: 0 → Agotada
-  if (body.precio === undefined && body.stock === undefined) errs.cambios = 'Indique el nuevo precio o la nueva cantidad.';
+  if (body.nombre !== undefined) {
+    cambios.nombre = texto(body.nombre);
+    if (cambios.nombre.length < 2 || cambios.nombre.length > 80) errs.nombre = 'Escriba el nombre del producto (2 a 80 caracteres).';
+  }
+  if (body.descripcion !== undefined) {
+    cambios.descripcion = texto(body.descripcion) || null;
+    if (cambios.descripcion && cambios.descripcion.length > 500) errs.descripcion = 'Use máximo 500 caracteres.';
+  }
+  if (!['precio', 'stock', 'nombre', 'descripcion'].some((k) => body[k] !== undefined)) {
+    errs.cambios = 'Indique el nuevo precio, la nueva cantidad, el nombre o la descripción.';
+  }
   lanzarSiHay(errs);
   return { version, ...cambios };
+}
+
+/** CU-10: pausar (oculta), reactivar (vuelve al catálogo) o retirar (inactiva y conserva el histórico). */
+const ACCIONES_ESTADO = Object.freeze({ PAUSAR: 'PAUSADA', REACTIVAR: 'ACTIVA', RETIRAR: 'INACTIVA' });
+function validarCambioEstadoProducto(body = {}) {
+  const errs = {};
+  const accion = typeof body.accion === 'string' ? body.accion.toUpperCase() : '';
+  if (!ACCIONES_ESTADO[accion]) errs.accion = 'Elija pausar, reactivar o retirar.';
+  const version = numero(body.version);
+  if (!Number.isInteger(version) || version < 1) errs.version = 'Falta la versión de la publicación.';
+  lanzarSiHay(errs);
+  return { accion, version };
 }
 
 /** CU-03 paso 2: filtros por municipio, categoría y rango de precio, con paginación. */
@@ -119,6 +142,25 @@ function validarFiltros(q = {}) {
   if (f.precioMin !== undefined && f.precioMax !== undefined && f.precioMin > f.precioMax) {
     errs.precioMax = 'El precio máximo debe ser mayor que el mínimo.';
   }
+  // CU-11: búsqueda por texto (mínimo 3 caracteres). Se quitan los comodines de LIKE.
+  if (q.q !== undefined && q.q !== '') {
+    f.q = texto(String(q.q)).replace(/[%_\\]/g, '');
+    if (f.q.length < 3) errs.q = 'Escriba al menos 3 letras para buscar.';
+    else if (f.q.length > 60) errs.q = 'Use máximo 60 caracteres.';
+  }
+  f.orden = q.orden === undefined || q.orden === '' ? 'recientes' : String(q.orden).toLowerCase();
+  if (!ORDENES_CATALOGO.includes(f.orden)) errs.orden = `Orden inválido (${ORDENES_CATALOGO.join(', ')}).`;
+  // CU-12: ubicación del teléfono (opcional) y radio máximo.
+  if (q.lat !== undefined || q.lon !== undefined) {
+    const lat = numero(q.lat);
+    const lon = numero(q.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) errs.ubicacion = 'Ubicación inválida.';
+    else f.punto = { lat, lon };
+  }
+  if (q.radioKm !== undefined && q.radioKm !== '') {
+    f.radioKm = numero(q.radioKm);
+    if (!Number.isFinite(f.radioKm) || f.radioKm < 1 || f.radioKm > 300) errs.radioKm = 'El radio va de 1 a 300 km.';
+  }
   f.pagina = q.pagina === undefined ? 1 : numero(q.pagina);
   if (!Number.isInteger(f.pagina) || f.pagina < 1) errs.pagina = 'Página inválida.';
   f.tamano = q.tamano === undefined ? 20 : numero(q.tamano);
@@ -127,4 +169,6 @@ function validarFiltros(q = {}) {
   return f;
 }
 
-module.exports = { validarPublicacion, validarFotos, validarEdicion, validarFiltros, esUuid, esJpeg };
+module.exports = {
+  validarPublicacion, validarFotos, validarEdicion, validarFiltros, validarCambioEstadoProducto, esUuid, esJpeg, ACCIONES_ESTADO, ORDENES_CATALOGO,
+};

@@ -39,7 +39,7 @@ describe('npm run sembrar (datos de demostración · AGRO-15)', () => {
     expect(await contar('mensaje')).toBe(3);
     expect(segunda.resumen.map((r) => r.estado)).toEqual(primera.resumen.map((r) => r.estado));
     expect(segunda.productos.papa.id).toBe(uuidDe('producto:papa'));
-  });
+  }, 20_000); // siembra completa dos veces: bcrypt y fotos reales
 
   test('uuidDe produce UUID v4 válidos y estables', () => {
     expect(uuidDe('x')).toBe(uuidDe('x'));

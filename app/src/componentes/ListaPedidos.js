@@ -8,27 +8,34 @@ import { useTiempoReal } from '../tiempoReal/TiempoRealContext';
 import { Opciones } from './Opciones';
 import { TarjetaPedido } from './TarjetaPedido';
 import { api } from '../api/cliente';
+import { BotonGrande } from './BotonGrande';
+import { PERIODOS, haceDias } from '../datos/fase2';
 import { mensajeDeError } from '../validacion/cuenta';
 import { colores, espacio, texto } from '../tema/tema';
 
-const FILTROS = [{ valor: 'activos', texto: 'Activos' }, { valor: 'todos', texto: 'Todos' }];
+const FILTROS = [{ valor: 'activos', texto: 'Activos' }, { valor: 'finalizados', texto: 'Finalizados' }, { valor: 'todos', texto: 'Todos' }];
+const OPCIONES_PERIODO = PERIODOS.map((p) => ({ valor: p.valor === null ? 'siempre' : String(p.valor), texto: p.texto }));
 
 /**
  * Lista de pedidos compartida por ambos roles (la API filtra según el rol del token).
+ * RF-15 · CU-15: del más reciente al más antiguo, separando activos y finalizados, con filtro por fechas (paso 2).
+ * Sin pedidos ofrece ir al catálogo (A1); sin señal muestra los guardados en el teléfono (A2).
  * Se recarga al volver a la pantalla y al deslizar hacia abajo.
  */
-export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
+export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio, accionVacio }) {
   const [filtro, setFiltro] = useState('activos');
+  const [periodo, setPeriodo] = useState('siempre');
   const [pedidos, setPedidos] = useState(null);
   const [error, setError] = useState(null);
   const [desdeCache, setDesdeCache] = useState(false);
   const { versionPedidos } = useTiempoReal();
   const [cargando, setCargando] = useState(false);
 
-  const cargar = useCallback(async (f) => {
+  const cargar = useCallback(async (f, p) => {
     setCargando(true);
+    const desde = p && p !== 'siempre' ? haceDias(Number(p)) : undefined;
     try {
-      const r = await api.pedidos(f);
+      const r = await api.pedidos(desde ? { estado: f, desde } : f);
       setPedidos(r.pedidos);
       guardarPedidos(r.pedidos).catch(() => {});
       setError(null);
@@ -36,7 +43,7 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
     } catch (err) {
       // CU-15 / CU-17: sin señal se muestran los pedidos guardados en el teléfono.
       if (err.codigo === 'SIN_CONEXION') {
-        setPedidos(await pedidosLocal({ soloActivos: f === 'activos' }).catch(() => []));
+        setPedidos(await pedidosLocal({ grupo: f, desde }).catch(() => []));
         setDesdeCache(true);
         setError(null);
       } else {
@@ -49,9 +56,9 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
 
   // Se recarga sola cuando llega un pedido nuevo o cambia uno (tiempo real, CA-06 y CA-08).
   useFocusEffect(useCallback(() => {
-    cargar(filtro);
+    cargar(filtro, periodo);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- versionPedidos solo dispara la recarga
-  }, [cargar, filtro, versionPedidos]));
+  }, [cargar, filtro, periodo, versionPedidos]));
 
   return (
     <FlatList
@@ -59,20 +66,22 @@ export function ListaPedidos({ contraparteDe, onAbrir, encabezado, vacio }) {
       data={pedidos || []}
       keyExtractor={(p) => p.id}
       contentContainerStyle={styles.lista}
-      refreshControl={<RefreshControl refreshing={cargando} onRefresh={() => cargar(filtro)} colors={[colores.primario]} />}
+      refreshControl={<RefreshControl refreshing={cargando} onRefresh={() => cargar(filtro, periodo)} colors={[colores.primario]} />}
       ListHeaderComponent={(
         <>
           {encabezado}
           {desdeCache ? <AvisoSinSenal /> : null}
           {error ? <Aviso tipo="sinSenal" mensaje={error} /> : null}
           <Opciones opciones={FILTROS} valor={filtro} onCambiar={setFiltro} />
+          <Opciones opciones={OPCIONES_PERIODO} valor={periodo} onCambiar={setPeriodo} testID="filtro-periodo" />
         </>
       )}
       renderItem={({ item }) => <TarjetaPedido pedido={item} contraparte={contraparteDe(item)} onPress={() => onAbrir(item)} />}
       ListEmptyComponent={pedidos ? (
         <View style={styles.vacio} testID="pedidos-vacio">
           <Text style={styles.vacioIcono} importantForAccessibility="no">📦</Text>
-          <Text style={styles.vacioTexto}>{filtro === 'activos' ? vacio : 'Todavía no hay pedidos.'}</Text>
+          <Text style={styles.vacioTexto}>{periodo !== 'siempre' ? 'No hay pedidos en ese periodo.' : filtro === 'activos' ? vacio : filtro === 'finalizados' ? 'Aún no hay pedidos entregados o cancelados.' : 'Todavía no hay pedidos.'}</Text>
+          {accionVacio && filtro !== 'finalizados' ? <BotonGrande titulo={accionVacio.titulo} onPress={accionVacio.onPress} /> : null}
         </View>
       ) : null}
     />

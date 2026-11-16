@@ -42,7 +42,8 @@ function createCalificacionesRepository({ pool }) {
     /** Opiniones del productor, de la más reciente a la más antigua. */
     async delProductor(idProductor, { limite, desplazamiento }) {
       const { rows } = await pool.query(
-        `SELECT c.puntuacion, c.comentario, c.fecha, u.nombres, u.apellidos
+        `SELECT c.id_calificacion, c.puntuacion, CASE WHEN c.oculta THEN NULL ELSE c.comentario END AS comentario, c.oculta,
+                c.fecha, u.nombres, u.apellidos
          FROM calificacion c JOIN pedido p ON p.id_pedido = c.id_pedido JOIN usuario u ON u.id_usuario = p.id_consumidor
          WHERE p.id_productor = $1 ORDER BY c.fecha DESC LIMIT $2 OFFSET $3`,
         [idProductor, limite, desplazamiento],

@@ -68,7 +68,7 @@ class ReporteroCP {
     const cuenta = (v) => filas.filter((f) => f.veredicto === v).length;
 
     const md = [];
-    md.push('# Informe de pruebas de sistema · AgroTech MVP', '');
+    md.push('# Informe de pruebas de sistema · AgroTech v1.1.0 (MVP + Fase 2 del SRS)', '');
     md.push(`- **Fecha:** ${this.inicio.toISOString().replace('T', ' ').slice(0, 16)} UTC`);
     md.push(`- **Entorno:** ${local ? 'local (API y app web levantadas por Playwright)' : 'servidor desplegado'} · API \`${API}\` · Web \`${WEB}\``);
     md.push(`- **Resultado global de la ejecución:** ${resultado.status} · duración ${(resultado.duration / 1000).toFixed(1)} s`);

@@ -6,6 +6,8 @@ import { CampoTexto } from '../../../componentes/CampoTexto';
 import { Aviso } from '../../../componentes/Aviso';
 import { DetallePedido } from '../../../componentes/DetallePedido';
 import { BotonChat } from '../../../componentes/BotonChat';
+import { CancelarPedido } from '../../../componentes/CancelarPedido';
+import { BotonReportar } from '../../../componentes/BotonReportar';
 import { Estrellas } from '../../../componentes/Calificacion';
 import { useTiempoReal } from '../../../tiempoReal/TiempoRealContext';
 import { api } from '../../../api/cliente';
@@ -117,7 +119,12 @@ export default function PedidoProductor() {
         </View>
       ) : null}
       <BotonChat pedido={pedido} rol="PRODUCTOR" contraparte={pedido.consumidor.nombre} />
+      {/* CU-14: un pedido ya aceptado se cancela con motivo (el pendiente se rechaza arriba). */}
+      {pedido.estado !== 'PENDIENTE' ? (
+        <CancelarPedido pedido={pedido} rol="PRODUCTOR" enLinea={enLinea && !desdeCache} onCancelado={(r) => { setPedido(r.pedido); setAviso({ tipo: 'info', mensaje: '✓ Pedido cancelado. El inventario volvió a su publicación y se avisó al consumidor.' }); }} />
+      ) : null}
       <DetallePedido pedido={pedido} contraparte={pedido.consumidor.nombre} />
+      <BotonReportar tipo="PEDIDO" id={pedido.id} titulo={`Pedido de ${pedido.consumidor.nombre}`} etiqueta="Reportar un problema con este pedido" />
     </ScrollView>
   );
 }

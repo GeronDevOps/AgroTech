@@ -58,8 +58,9 @@ function createCalificacionesService({ pool, calificacionesRepository: repo, eve
       return {
         productor: { id: prod.id_usuario, nombre: nombreCorto(prod.nombres, prod.apellidos), municipio: prod.municipio, verificado: prod.verificado },
         reputacion: await repo.reputacion(pool, idProductor),
+        // CU-18: un comentario ocultado por el administrador conserva la puntuación pero no el texto.
         calificaciones: filas.slice(0, TAMANO).map((f) => ({
-          puntuacion: f.puntuacion, comentario: f.comentario, fecha: f.fecha, consumidor: nombreCorto(f.nombres, f.apellidos),
+          id: f.id_calificacion, puntuacion: f.puntuacion, comentario: f.comentario, oculto: f.oculta, fecha: f.fecha, consumidor: nombreCorto(f.nombres, f.apellidos),
         })),
         pagina,
         hayMas: filas.length > TAMANO,

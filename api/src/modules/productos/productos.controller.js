@@ -29,11 +29,15 @@ function createProductosController({ productosService, urlBaseFotos }) {
     },
 
     async catalogo(req, res) {
-      res.json(await productosService.catalogo({ query: req.query, baseFotos: base(req) }));
+      res.json(await productosService.catalogo({ query: req.query, baseFotos: base(req), usuario: req.usuario }));
     },
 
     async detalle(req, res) {
       res.json(await productosService.detalle({ usuario: req.usuario, id: req.params.id, baseFotos: base(req) }));
+    },
+
+    async cambiarEstado(req, res) {
+      res.json(await productosService.cambiarEstado({ usuario: req.usuario, id: req.params.id, body: req.body, baseFotos: base(req) }));
     },
 
     async mios(req, res) {

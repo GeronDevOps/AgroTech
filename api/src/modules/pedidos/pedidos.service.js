@@ -3,7 +3,26 @@
 const { errores } = require('../../utils/http-error');
 const { transaccion } = require('../../db/transaccion');
 const { esUuid } = require('../productos/productos.validacion');
-const { validarClave, validarConfirmacion, validarCambioEstado } = require('./pedidos.validacion');
+const {
+  validarClave, validarConfirmacion, validarCambioEstado, validarCancelacion, validarFiltrosPedidos,
+} = require('./pedidos.validacion');
+const { registrarBitacora } = require('../../utils/bitacora');
+
+const TAMANO_PAGINA = 30;
+const ACTIVOS = ['PENDIENTE', 'ACEPTADO', 'EN_CAMINO'];
+
+/** CU-15 paso 3: acciones disponibles para quien consulta el pedido. */
+function accionesPara(f, usuario) {
+  const esConsumidor = f.id_consumidor === usuario.id;
+  const acciones = [];
+  if (ACTIVOS.includes(f.estado)) acciones.push('CHAT', 'CANCELAR');
+  if (!esConsumidor && f.estado === 'PENDIENTE') acciones.push('ACEPTAR', 'RECHAZAR');
+  if (!esConsumidor && f.estado === 'ACEPTADO') acciones.push('DESPACHAR');
+  if (!esConsumidor && f.estado === 'EN_CAMINO') acciones.push('ENTREGAR');
+  if (esConsumidor && f.estado === 'ENTREGADO' && !f.cal_puntuacion) acciones.push('CALIFICAR');
+  acciones.push('REPORTAR'); // CU-14 A1 / CU-19: incumplimientos, también de pedidos entregados
+  return acciones;
+}
 
 const nombreCorto = (n, a) => `${n} ${a.charAt(0)}.`;
 const redondear = (x) => Math.round(x * 100) / 100;
@@ -100,12 +119,24 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
       return { creado: r.creado, clave, pedidos };
     },
 
-    /** CU-15 (consumidor) y "Pedidos recibidos" del productor (CU-13). */
-    async listar({ usuario, estado }) {
-      const soloActivos = (estado || 'activos') !== 'todos';
-      const filas = await repo.delUsuario({ idUsuario: usuario.id, rol: usuario.rol, soloActivos });
-      const sinLeer = await repo.sinLeer(filas.map((f) => f.id_pedido), usuario.id);
-      return { pedidos: filas.map((f) => ({ ...pedidoPublico(f), mensajesSinLeer: sinLeer[f.id_pedido] || 0 })) };
+    /**
+     * CU-15 (consumidor) y "Pedidos recibidos" del productor (CU-13), del más reciente al más antiguo.
+     * RF-15: filtros por estado (activos, finalizados, todos o estados puntuales) y por fechas; paginado de a 30.
+     */
+    async listar({ usuario, query = {} }) {
+      const f = validarFiltrosPedidos(query);
+      const filas = await repo.delUsuario({
+        idUsuario: usuario.id, rol: usuario.rol, estados: f.estados, desde: f.desde, hasta: f.hasta,
+        limite: TAMANO_PAGINA, desplazamiento: (f.pagina - 1) * TAMANO_PAGINA,
+      });
+      const total = filas.length ? Number(filas[0].total_filas) : 0;
+      const sinLeer = await repo.sinLeer(filas.map((x) => x.id_pedido), usuario.id);
+      return {
+        pedidos: filas.map((x) => ({ ...pedidoPublico(x), mensajesSinLeer: sinLeer[x.id_pedido] || 0 })),
+        pagina: f.pagina,
+        total,
+        hayMas: f.pagina * TAMANO_PAGINA < total,
+      };
     },
 
     /** Detalle para las partes del pedido: productos, historial de estados y último pago. */
@@ -119,6 +150,7 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
         pedido: {
           ...pedidoPublico(f),
           mensajesSinLeer: sinLeer[id] || 0,
+          acciones: accionesPara(f, usuario),
           historial,
           pago: pago ? { estado: pago.estado, medio: pago.medio, referencia: pago.referencia, fecha: pago.creado_en } : null,
         },
@@ -142,7 +174,7 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
           throw errores.conflicto('PAGO_NO_APROBADO', 'El consumidor eligió pagar en línea y el pago todavía no está aprobado.');
         }
         if (c.estado === 'CANCELADO' && p.estado !== 'PENDIENTE') {
-          throw errores.conflicto('TRANSICION_NO_PERMITIDA', 'En el MVP el productor solo puede rechazar pedidos pendientes; la cancelación posterior es de la Fase 2.');
+          throw errores.conflicto('TRANSICION_NO_PERMITIDA', 'El rechazo es solo para pedidos pendientes. Para un pedido ya aceptado use «Cancelar pedido» (POST /pedidos/{id}/cancelar).');
         }
         await repo.actualizarEstado(db, id, { estado: c.estado, motivo: c.estado === 'CANCELADO' ? c.motivo : null });
         if (c.estado === 'CANCELADO') {
@@ -150,8 +182,52 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
         }
         await repo.registrarHistorial(db, { idPedido: id, idUsuario: usuario.id, anterior: p.estado, nuevo: c.estado });
       });
-      emitir('estado_pedido', { idPedido: id, estado: c.estado });
+      emitir('estado_pedido', { idPedido: id, estado: c.estado, porUsuario: usuario.id });
       return this.detalle({ usuario, id });
+    },
+
+    /**
+     * CU-14 · Cancelar un pedido no entregado (RF-14), por el consumidor o el productor.
+     * Una sola transacción: estado CANCELADO, inventario restituido, historial con usuario, motivo y hora (paso 3).
+     * A1 pedido entregado → 409 PEDIDO_ENTREGADO (se usa un reporte, CU-19).
+     * A2 cancelaciones simultáneas → el pedido queda bloqueado (FOR UPDATE): prevalece la primera, la otra recibe 409 YA_CANCELADO.
+     * A3 falla al restituir → se revierte todo y el incidente queda en la bitácora.
+     * Paso 4: se avisa a la contraparte (tiempo real y push); el chat queda en solo lectura (disparador fn_validar_mensaje).
+     */
+    async cancelar({ usuario, id, body }) {
+      const c = validarCancelacion(body);
+      if (!esUuid(id)) throw errores.noEncontrado('El pedido no existe.');
+      let r;
+      try {
+        r = await transaccion(pool, async (db) => {
+          const p = await repo.bloquearPedido(db, id);
+          if (!p || (p.id_consumidor !== usuario.id && p.id_productor !== usuario.id)) throw errores.noEncontrado('El pedido no existe.');
+          if (p.estado === 'CANCELADO') throw errores.conflicto('YA_CANCELADO', 'El pedido ya estaba cancelado.', { motivo: p.motivo_cancelacion });
+          if (p.estado === 'ENTREGADO') {
+            throw errores.conflicto('PEDIDO_ENTREGADO', 'El pedido ya fue entregado y no se puede cancelar. Si hubo un problema, use «Reportar».');
+          }
+          if (c.version !== undefined && c.version !== p.version) {
+            throw errores.conflicto('CONFLICTO_VERSION', 'El pedido cambió. Actualice y vuelva a intentar.');
+          }
+          const quien = p.id_consumidor === usuario.id ? 'Consumidor' : 'Productor';
+          await repo.actualizarEstado(db, id, { estado: 'CANCELADO', motivo: `${quien}: ${c.motivo}`.slice(0, 150) });
+          for (const linea of await repo.detalleDe(db, id)) await repo.moverStock(db, linea.id_producto, -Number(linea.cantidad));
+          await repo.anularPagoPendiente(db, id);
+          await repo.registrarHistorial(db, { idPedido: id, idUsuario: usuario.id, anterior: p.estado, nuevo: 'CANCELADO' });
+          const reembolso = p.metodo_pago === 'EN_LINEA' && p.estado_pago === 'APROBADO';
+          await registrarBitacora(db, { idUsuario: usuario.id, accion: 'PEDIDO_CANCELADO', entidad: 'PEDIDO', idEntidad: id, resultado: reembolso ? 'REEMBOLSO_PEND' : 'EXITOSO' });
+          return { anterior: p.estado, reembolso };
+        });
+      } catch (err) {
+        if (!err.status || err.status >= 500) {
+          // A3: la transacción se revirtió (inventario intacto); el incidente queda registrado.
+          await registrarBitacora(pool, { idUsuario: usuario.id, accion: 'PEDIDO_CANCELADO', entidad: 'PEDIDO', idEntidad: id, resultado: 'FALLIDO' }).catch(() => {});
+        }
+        throw err;
+      }
+      emitir('estado_pedido', { idPedido: id, estado: 'CANCELADO', porUsuario: usuario.id });
+      const detalle = await this.detalle({ usuario, id });
+      return { ...detalle, reembolsoPendiente: r.reembolso };
     },
 
     /** CU-13 A3: tarea programada que cancela los pedidos pendientes sin respuesta y restituye el inventario. */
@@ -172,4 +248,4 @@ function createPedidosService({ pool, pedidosRepository: repo, eventos }) {
 }
 
 
-module.exports = { createPedidosService, pedidoPublico };
+module.exports = { createPedidosService, pedidoPublico, accionesPara };

@@ -18,8 +18,16 @@ import { errorCantidad, errorPrecio } from '../../../validacion/producto';
 import { mensajeDeError } from '../../../validacion/cuenta';
 import { colores, espacio, texto } from '../../../tema/tema';
 
+const ACCIONES = {
+  PAUSAR: { titulo: '⏸ Pausar publicación', ok: '✓ Publicación pausada: ya no aparece en el catálogo. Puede reactivarla cuando quiera.' },
+  REACTIVAR: { titulo: '▶ Reactivar publicación', ok: '✓ Publicación reactivada: vuelve a aparecer en el catálogo.' },
+  RETIRAR: { titulo: '🗑 Retirar publicación', ok: '✓ Publicación retirada. Sus pedidos anteriores la conservan en el historial.' },
+};
+
 /**
- * CU-10 / RF-10a · Corregir precio y cantidad de una publicación propia.
+ * CU-10 / RF-10 · Actualizar, pausar o retirar una publicación propia.
+ * Además de precio y cantidad (RF-10a) edita nombre y descripción; pausar la oculta, reactivar la devuelve
+ * y retirar la deja inactiva conservando el histórico. A1: con pedidos en curso solo se puede pausar.
  * - Con red y sin cambios en cola: PATCH con la versión leída; si otra edición ganó primero (409)
  *   se cargan los datos vigentes (CP-17).
  * - Sin red, o si ya hay cambios en cola: el cambio va a la cola del teléfono (CU-17).
@@ -35,6 +43,9 @@ export default function EditarProducto() {
   const [producto, setProducto] = useState(null);
   const [precio, setPrecio] = useState('');
   const [cantidad, setCantidad] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [confirmarRetiro, setConfirmarRetiro] = useState(false);
   const [errores, setErrores] = useState({});
   const [aviso, setAviso] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -47,6 +58,8 @@ export default function EditarProducto() {
       editado.current = false;
       setPrecio(String(p.precio));
       setCantidad(formatoCantidad(p.stock));
+      setNombre(p.nombre || '');
+      setDescripcion(p.descripcion || '');
     }
   };
   const escribir = (setter) => (v) => { editado.current = true; setter(v); };
@@ -104,6 +117,8 @@ export default function EditarProducto() {
     if (Object.keys(e).length) return;
     setEnviando(true);
     const cambios = { precio: leerNumero(precio), stock: leerNumero(cantidad, { decimales: true }) };
+    if (nombre.trim() && nombre.trim() !== producto.nombre) cambios.nombre = nombre.trim();
+    if (descripcion.trim() !== (producto.descripcion || '')) cambios.descripcion = descripcion.trim();
     try {
       if (!enLinea || producto.sync) {
         await guardarEnCola(cambios);
@@ -126,6 +141,37 @@ export default function EditarProducto() {
         setAviso({ tipo: 'sinSenal', mensaje: `${err.message} Ahora ve los datos actuales.` });
       } else {
         setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
+      }
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  /** CU-10 pasos 1-3: pausar, reactivar o retirar. Sin señal queda en la cola (A4). */
+  async function cambiarEstado(accion) {
+    setAviso(null);
+    setConfirmarRetiro(false);
+    setEnviando(true);
+    try {
+      if (!enLinea) {
+        await sync.estadoDespues(producto, accion);
+        setAviso({ tipo: 'sinSenal', mensaje: '✓ Guardado en el teléfono. El cambio se enviará solo cuando haya señal.' });
+        return;
+      }
+      const r = await api.cambiarEstadoProducto(id, accion, producto.version);
+      guardarProductos([r.producto]).catch(() => {});
+      mostrar(r.producto, { forzar: true });
+      setAviso({ tipo: 'info', mensaje: ACCIONES[accion].ok });
+      if (accion === 'RETIRAR') setTimeout(() => router.back(), 1200);
+    } catch (err) {
+      if (err.codigo === 'CONFLICTO_VERSION' && err.detalles && err.detalles.producto) {
+        mostrar(err.detalles.producto, { forzar: true });
+        setAviso({ tipo: 'sinSenal', mensaje: `${err.message} Ahora ve los datos actuales.` });
+      } else if (err.codigo === 'SIN_CONEXION') {
+        await sync.estadoDespues(producto, accion);
+        setAviso({ tipo: 'sinSenal', mensaje: '✓ Guardado en el teléfono. El cambio se enviará solo cuando haya señal.' });
+      } else {
+        setAviso({ tipo: err.codigo === 'PEDIDOS_EN_CURSO' ? 'sinSenal' : 'error', mensaje: mensajeDeError(err) });
       }
     } finally {
       setEnviando(false);
@@ -187,6 +233,8 @@ export default function EditarProducto() {
         {!enLinea && !conError ? <Aviso tipo="sinSenal" mensaje="Sin señal. Puede guardar igual: el cambio queda en el teléfono y se envía solo al volver la señal." /> : null}
         {aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} testID="aviso-editar" /> : null}
 
+        <CampoTexto etiqueta="Nombre del producto" value={nombre} onChangeText={escribir(setNombre)} error={errores.nombre} maxLength={80} />
+        <CampoTexto etiqueta="Descripción (opcional)" value={descripcion} onChangeText={escribir(setDescripcion)} error={errores.descripcion} maxLength={500} multiline />
         <Cantidad etiqueta="Cantidad disponible" valor={cantidad} onCambiar={escribir(setCantidad)} error={errores.stock} minimo={0} sufijo={u.plural} />
         <Text style={styles.ayuda}>Si ya no tiene, ponga 0: la publicación queda Agotada.</Text>
         <CampoTexto
@@ -198,6 +246,24 @@ export default function EditarProducto() {
           ayuda="Los pedidos ya hechos conservan el precio con el que se pidieron."
         />
         <BotonGrande titulo={enviando ? 'Guardando…' : 'Guardar cambios'} onPress={guardar} deshabilitado={enviando} />
+
+        {!(producto.sync && producto.sync.nueva) ? (
+          <View style={styles.estadoCaja} testID="estado-publicacion">
+            <Text style={styles.estadoTitulo}>Estado de la publicación</Text>
+            <Text style={styles.ayudaEstado}>Pausar la oculta del catálogo sin borrarla; retirar la quita definitivamente (sus pedidos anteriores la conservan).</Text>
+            {producto.estado === 'PAUSADA'
+              ? <BotonGrande titulo={ACCIONES.REACTIVAR.titulo} onPress={() => cambiarEstado('REACTIVAR')} deshabilitado={enviando} />
+              : <BotonGrande titulo={ACCIONES.PAUSAR.titulo} variante="secundario" onPress={() => cambiarEstado('PAUSAR')} deshabilitado={enviando} />}
+            {confirmarRetiro ? (
+              <Aviso mensaje="¿Seguro que quiere retirar esta publicación? No se puede deshacer." testID="confirmar-retiro">
+                <BotonGrande titulo="Sí, retirar" onPress={() => cambiarEstado('RETIRAR')} deshabilitado={enviando} />
+                <BotonGrande titulo="No" variante="secundario" onPress={() => setConfirmarRetiro(false)} />
+              </Aviso>
+            ) : (
+              <BotonGrande titulo={ACCIONES.RETIRAR.titulo} variante="secundario" onPress={() => setConfirmarRetiro(true)} deshabilitado={enviando} />
+            )}
+          </View>
+        ) : null}
         <BotonGrande titulo="Volver a mis productos" variante="secundario" onPress={() => router.back()} />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -214,4 +280,7 @@ const styles = StyleSheet.create({
   nombre: { fontSize: texto.titulo, fontWeight: '800', color: colores.texto },
   actual: { fontSize: texto.pequeno, color: colores.textoSecundario, marginVertical: 2 },
   ayuda: { fontSize: texto.pequeno, color: colores.textoSecundario, marginTop: -espacio.s, marginBottom: espacio.m },
+  estadoCaja: { borderTopWidth: 1, borderTopColor: colores.borde, marginTop: espacio.l, paddingTop: espacio.m },
+  estadoTitulo: { fontSize: texto.titulo, fontWeight: '800', color: colores.texto },
+  ayudaEstado: { fontSize: texto.pequeno, color: colores.textoSecundario, marginVertical: espacio.xs },
 });

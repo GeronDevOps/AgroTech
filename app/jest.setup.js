@@ -93,3 +93,10 @@ jest.mock('expo-notifications', () => {
   };
 });
 
+
+// Ubicación del teléfono (CU-12): permiso concedido y un punto en Pamplona; las pruebas pueden cambiarlo.
+jest.mock('expo-location', () => ({
+  requestForegroundPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted' })),
+  getCurrentPositionAsync: jest.fn(async () => ({ coords: { latitude: 7.3756, longitude: -72.6478 } })),
+  Accuracy: { Balanced: 3 },
+}));

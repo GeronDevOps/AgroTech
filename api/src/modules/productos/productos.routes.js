@@ -14,7 +14,9 @@ const { createProductosController } = require('./productos.controller');
  *   GET   /productos/mios     JWT · productor  "Mis productos"
  *   GET   /productos/{id}     JWT              CU-03 paso 3 detalle
  *   POST  /productos          JWT · productor  CU-02 multipart: foto + miniatura + datos (JSON)
- *   PATCH /productos/{id}     JWT · productor  CU-10 / RF-10a precio y cantidad con version
+ *   PATCH /productos/{id}     JWT · productor  CU-10 / RF-10a precio, cantidad, nombre y descripción con version
+ *   PATCH /productos/{id}/estado  JWT · productor  CU-10 / RF-10 { accion: PAUSAR | REACTIVAR | RETIRAR, version }
+ * Catálogo: ?municipio&categoria&precioMin&precioMax&q&orden=recientes|precio_asc|precio_desc|calificacion|cercania&lat&lon&radioKm
  */
 function productosRoutes({ pool, tokens, almacenFotos }) {
   const productosRepository = createProductosRepository({ pool });
@@ -35,6 +37,7 @@ function productosRoutes({ pool, tokens, almacenFotos }) {
   router.get('/:id', autenticar(tokens), controller.detalle);
   router.post('/', soloProductor, subida, controller.publicar);
   router.patch('/:id', soloProductor, controller.editar);
+  router.patch('/:id/estado', soloProductor, controller.cambiarEstado);
   router.productosService = productosService; // lo reutiliza /sync/push (operaciones PRODUCTO.EDITAR)
   return router;
 }

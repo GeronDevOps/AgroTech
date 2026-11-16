@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { BotonReportar } from '../../../componentes/BotonReportar';
 import { BotonGrande } from '../../../componentes/BotonGrande';
 import { Aviso } from '../../../componentes/Aviso';
 import { Cantidad } from '../../../componentes/Cantidad';
@@ -96,6 +97,7 @@ export default function DetalleProducto() {
           ) : null}
         </View>
       ) : null}
+      <BotonReportar tipo="PRODUCTO" id={producto.id} titulo={producto.nombre} etiqueta="Reportar esta publicación" />
     </ScrollView>
   );
 }

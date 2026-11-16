@@ -3,7 +3,9 @@
  * Los datos de partida (cuentas, productos, pedidos) se crean por la API; lo que se evalúa se hace en la pantalla.
  */
 const base = require('@playwright/test');
-const { API } = require('../entorno');
+const fs = require('node:fs');
+const path = require('node:path');
+const { API, CAPTURAS } = require('../entorno');
 const { CONTRASENA } = require('../soporte/api');
 
 const test = base.test.extend({
@@ -61,4 +63,20 @@ async function tarjetasVisibles(page) {
     }));
 }
 
-module.exports = { test, expect: base.expect, entrar, red, emular3G, RED_3G, tarjetasVisibles };
+/**
+ * Evidencia de un paso (Fase 2): guarda la captura en resultados/capturas/<CP>_<n>_<paso>.png y la adjunta al informe HTML.
+ * El nombre del caso sale de la etiqueta @CP-xx de la prueba.
+ */
+async function evidencia(page, paso) {
+  const info = base.test.info();
+  const cp = (info.tags.find((t) => /^@CP-\d{2}$/.test(t)) || '@CP-00').slice(1);
+  info.__capturas = (info.__capturas || 0) + 1;
+  const nombre = `${cp}_${String(info.__capturas).padStart(2, '0')}_${paso.normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\w]+/g, '_').replace(/^_|_$/g, '').toLowerCase()}.png`;
+  fs.mkdirSync(CAPTURAS, { recursive: true });
+  const ruta = path.join(CAPTURAS, nombre);
+  await page.waitForTimeout(600); // deja terminar las animaciones (hojas que se cierran) antes de capturar
+  await page.screenshot({ path: ruta });
+  await info.attach(`${cp} · ${paso}`, { path: ruta, contentType: 'image/png' });
+}
+
+module.exports = { test, expect: base.expect, entrar, red, emular3G, RED_3G, tarjetasVisibles, evidencia };

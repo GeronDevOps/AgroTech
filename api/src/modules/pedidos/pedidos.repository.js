@@ -123,15 +123,33 @@ function createPedidosRepository({ pool }) {
       return rows[0] || null;
     },
 
-    /** CU-15 / CU-13: pedidos del usuario según su rol; activos o los últimos 50. */
-    async delUsuario({ idUsuario, rol, soloActivos }) {
+    /**
+     * CU-15 / CU-13: pedidos del usuario según su rol, del más reciente al más antiguo.
+     * Filtros (RF-15 · CU-15 paso 2): estados, rango de fechas [desde, hasta] (días completos, hora de Colombia) y página.
+     */
+    async delUsuario({ idUsuario, rol, estados = null, desde = null, hasta = null, limite = 50, desplazamiento = 0 }) {
       const campo = rol === 'PRODUCTOR' ? 'p.id_productor' : 'p.id_consumidor';
+      const cond = [`${campo} = $1`];
+      const params = [idUsuario];
+      if (estados) { params.push(estados); cond.push(`p.estado = ANY($${params.length}::estado_pedido[])`); }
+      if (desde) { params.push(desde); cond.push(`p.fecha >= ($${params.length}::date)::timestamp AT TIME ZONE 'America/Bogota'`); }
+      if (hasta) { params.push(hasta); cond.push(`p.fecha < ($${params.length}::date + 1)::timestamp AT TIME ZONE 'America/Bogota'`); }
+      params.push(limite, desplazamiento);
       const { rows } = await pool.query(
-        `${SELECT_PEDIDO} WHERE ${campo} = $1 ${soloActivos ? `AND p.estado IN ${ACTIVOS}` : ''}
-         ORDER BY p.fecha DESC LIMIT 50`,
-        [idUsuario],
+        `${SELECT_PEDIDO.replace('SELECT p.id_pedido', 'SELECT COUNT(*) OVER() AS total_filas, p.id_pedido')}
+         WHERE ${cond.join(' AND ')}
+         ORDER BY p.fecha DESC, p.id_pedido LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        params,
       );
       return rows;
+    },
+
+    /** CU-14 paso 3: anula el pago en línea que no alcanzó a aprobarse. */
+    async anularPagoPendiente(db, id) {
+      await db.query(
+        "UPDATE pedido SET estado_pago = 'ANULADO' WHERE id_pedido = $1 AND metodo_pago = 'EN_LINEA' AND estado_pago IN ('PENDIENTE', 'RECHAZADO')",
+        [id],
+      );
     },
 
     /** Mensajes sin leer de la contraparte, por pedido (CU-05 paso 4). */

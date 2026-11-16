@@ -25,7 +25,7 @@ function createApp(deps) {
     });
     next();
   });
-  app.use(cors(config.corsOrigins));
+  app.use(cors(config.corsOrigins, { redLocal: config.env === 'development' }));
   app.use(express.json({ limit: '1mb' }));
 
   // Fotos del driver local: nombres únicos por publicación, se pueden guardar en caché mucho tiempo.

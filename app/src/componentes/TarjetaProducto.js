@@ -51,7 +51,9 @@ export function FotoProducto({ uri, codigoCategoria, style }) {
 export function TarjetaProducto({ producto, onPress, mostrarEstado = false, compacta = false }) {
   const u = unidad(producto.unidad);
   const sync = producto.sync ? `, ${(ESTADOS_SYNC[producto.sync.estado] || ESTADOS_SYNC.PENDIENTE).texto}` : '';
-  const etiqueta = `${producto.nombre}, ${formatoPesos(producto.precio)} por ${u.singular}, ${formatoCantidad(producto.stock)} disponibles, ${producto.municipio}${sync}`;
+  // CU-12: con «Cerca de mí» la API trae la distancia al productor.
+  const km = producto.distanciaKm !== undefined && producto.distanciaKm !== null ? `${String(producto.distanciaKm).replace('.', ',')} km` : null;
+  const etiqueta = `${producto.nombre}, ${formatoPesos(producto.precio)} por ${u.singular}, ${formatoCantidad(producto.stock)} disponibles, ${producto.municipio}${km ? `, a ${km}` : ''}${sync}`;
   return (
     <Pressable
       accessibilityRole="button"
@@ -64,7 +66,7 @@ export function TarjetaProducto({ producto, onPress, mostrarEstado = false, comp
         <Text style={styles.nombre} numberOfLines={2}>{producto.nombre}</Text>
         <Text style={styles.precio}>{formatoPesos(producto.precio)}<Text style={styles.porUnidad}> / {u.nombre}</Text></Text>
         <Text style={styles.detalle}>{formatoCantidad(producto.stock)} {producto.stock === 1 ? u.singular : u.plural}</Text>
-        <Text style={styles.detalle} numberOfLines={1}>📍 {producto.municipio}</Text>
+        <Text style={styles.detalle} numberOfLines={1}>📍 {producto.municipio}{km ? ` · ${km}` : ''}</Text>
         {mostrarEstado && !(producto.sync && producto.sync.nueva) ? <EstadoProducto estado={producto.estado} /> : null}
         {mostrarEstado && producto.sync ? <EstadoSync sync={producto.sync} /> : null}
         {mostrarEstado && producto.sync && producto.sync.error ? (

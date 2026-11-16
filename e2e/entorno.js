@@ -4,6 +4,8 @@
  * - Contra un servidor desplegado: E2E_API_URL=https://api.agrotech.co (y E2E_WEB_URL para la vista web).
  *   Cada prueba crea sus propios usuarios y productos, así que se puede ejecutar sobre un entorno con datos.
  */
+const path = require('node:path');
+
 const local = !process.env.E2E_API_URL;
 
 module.exports = {
@@ -21,4 +23,14 @@ module.exports = {
   },
   // Umbral de CP-05 (RNF-01): catálogo en máximo 3 s con 3G.
   UMBRAL_CATALOGO_MS: 3000,
+  // Fase 2 · CP-20: buzón de correo de la API local (driver "archivo"). Contra un servidor desplegado se omite.
+  BUZON: process.env.E2E_BUZON || (local ? path.resolve(__dirname, 'resultados/buzon') : ''),
+  // Fase 2 · CP-30: administrador del panel. En local lo crea `npm run preparar` (scripts/crear-admin.js).
+  ADMIN: {
+    correo: process.env.E2E_ADMIN_CORREO || 'admin.e2e@agrotech.test',
+    telefono: '3000000001',
+    contrasena: process.env.E2E_ADMIN_CONTRASENA || (local ? 'panelE2E2026' : ''),
+  },
+  // Evidencias (capturas de pantalla) de las pruebas de interfaz, por caso de prueba.
+  CAPTURAS: path.resolve(__dirname, 'resultados/capturas'),
 };

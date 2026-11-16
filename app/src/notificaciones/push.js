@@ -21,6 +21,7 @@ export async function registrarPush() {
   if (Platform.OS !== 'android') return null;
   try {
     await Notifications.setNotificationChannelAsync('pedidos', {
+      // eslint-disable-next-line import/namespace -- AndroidImportance sí existe (export * de expo-notifications 58); el plugin no lo resuelve
       name: 'Pedidos', importance: Notifications.AndroidImportance.HIGH, sound: 'default', vibrationPattern: [0, 250, 250, 250],
     });
     let { status } = await Notifications.getPermissionsAsync();
@@ -55,10 +56,13 @@ export function useNotificacionesPush(usuario) {
 
   useEffect(() => {
     if (!rol) return undefined;
-    const ruta = rol === 'PRODUCTOR' ? '/productor/pedido' : '/consumidor/pedido';
+    if (rol === 'ADMINISTRADOR') return undefined;
+    const base = rol === 'PRODUCTOR' ? '/productor' : '/consumidor';
+    // CU-16 paso 3: el aviso abre el pedido o, si es un mensaje, el chat del pedido.
     const abrir = (respuesta) => {
-      const id = respuesta && respuesta.notification.request.content.data && respuesta.notification.request.content.data.idPedido;
-      if (id) router.push(`${ruta}/${id}`);
+      const datos = respuesta && respuesta.notification.request.content.data;
+      const id = datos && datos.idPedido;
+      if (id) router.push(`${base}/${datos.abrir === 'CHAT' ? 'chat' : 'pedido'}/${id}`);
     };
     // App cerrada: el aviso que la abrió.
     Notifications.getLastNotificationResponseAsync().then(abrir).catch(() => {});

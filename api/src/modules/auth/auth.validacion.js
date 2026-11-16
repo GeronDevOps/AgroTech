@@ -92,4 +92,29 @@ function validarSesion(body = {}) {
   return { identificador, contrasena: body.contrasena };
 }
 
-module.exports = { validarRegistro, validarSesion, normalizarTelefono, errorContrasena };
+/** CU-08 paso 1: solo el correo (el código llega al correo registrado). */
+function validarSolicitudRecuperacion(body = {}) {
+  const correo = normalizarCorreo(body.correo);
+  if (!RE_CORREO.test(correo) || correo.length > 120) {
+    throw errores.datosInvalidos('Revise los datos marcados.', { campos: { correo: 'Escriba el correo con el que creó la cuenta.' } });
+  }
+  return { correo };
+}
+
+/** CU-08 paso 3 y A3: código de 6 dígitos y nueva contraseña con la política vigente. */
+function validarRestablecimiento(body = {}) {
+  const errs = {};
+  const correo = normalizarCorreo(body.correo);
+  if (!RE_CORREO.test(correo)) errs.correo = 'Escriba el correo con el que creó la cuenta.';
+  const codigo = typeof body.codigo === 'string' ? body.codigo.replace(/\s/g, '') : '';
+  if (!/^\d{6}$/.test(codigo)) errs.codigo = 'El código tiene 6 dígitos.';
+  const errClave = errorContrasena(body.contrasena);
+  if (errClave) errs.contrasena = `${errClave} La contraseña debe tener entre 8 y 72 caracteres, con letras y números.`;
+  if (Object.keys(errs).length) throw errores.datosInvalidos('Revise los datos marcados.', { campos: errs });
+  return { correo, codigo, contrasena: body.contrasena };
+}
+
+module.exports = {
+  validarRegistro, validarSesion, validarSolicitudRecuperacion, validarRestablecimiento,
+  normalizarTelefono, normalizarCorreo, errorContrasena, validarNombre, texto, esTelefonoValido,
+};

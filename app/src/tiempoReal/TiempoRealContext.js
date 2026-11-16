@@ -22,6 +22,7 @@ export function TiempoRealProvider({ children }) {
   const [conectado, setConectado] = useState(false);
   const [versionPedidos, setVersionPedidos] = useState(0);
   const [ultimoPedidoNuevo, setUltimoPedidoNuevo] = useState(null);
+  const [versionNotificaciones, setVersionNotificaciones] = useState(0);
   const oyentes = useRef(new Set());
   const idUsuario = usuario ? usuario.id : null;
 
@@ -49,6 +50,8 @@ export function TiempoRealProvider({ children }) {
         if (datos.tipo === 'listo') setConectado(true);
         if (['pedido_nuevo', 'pedido_actualizado', 'calificacion'].includes(datos.tipo)) setVersionPedidos((v) => v + 1);
         if (datos.tipo === 'pedido_nuevo') setUltimoPedidoNuevo({ idPedido: datos.idPedido, recibido: Date.now() });
+        // CU-16 A1: aviso nuevo en la bandeja interna (contador de "Avisos").
+        if (datos.tipo === 'notificacion') setVersionNotificaciones((v) => v + 1);
         oyentes.current.forEach((fn) => fn(datos));
       };
       ws.onclose = (e) => {
@@ -71,9 +74,9 @@ export function TiempoRealProvider({ children }) {
   }, [idUsuario, enLinea]);
 
   const valor = useMemo(() => ({
-    conectado, versionPedidos, ultimoPedidoNuevo, suscribir,
+    conectado, versionPedidos, versionNotificaciones, ultimoPedidoNuevo, suscribir,
     descartarAvisoPedido: () => setUltimoPedidoNuevo(null),
-  }), [conectado, versionPedidos, ultimoPedidoNuevo, suscribir]);
+  }), [conectado, versionPedidos, versionNotificaciones, ultimoPedidoNuevo, suscribir]);
 
   return <TiempoRealContext.Provider value={valor}>{children}</TiempoRealContext.Provider>;
 }

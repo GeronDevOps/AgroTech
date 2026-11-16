@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BotonGrande } from '../../componentes/BotonGrande';
 import { IndicadorConexion } from '../../componentes/IndicadorConexion';
-import { api } from '../../api/cliente';
+import { API_URL, api } from '../../api/cliente';
+import { diagnosticoServidor } from '../../api/servidor';
 import { colores, espacio, texto } from '../../tema/tema';
 
 /** Bienvenida: punto de entrada sin sesión. */
@@ -30,17 +31,27 @@ export default function Bienvenida() {
   );
 }
 
-/** Solo en desarrollo: confirma que el teléfono llega a la API (GET /api/v1/salud). */
+/** Solo en desarrollo: estado de la conexión con la API; se vuelve a comprobar cada 5 s hasta conectar. */
 function EstadoServidor() {
   const [estado, setEstado] = useState('Servidor: comprobando…');
+  const [intento, setIntento] = useState(0);
   useEffect(() => {
     let activo = true;
+    let temporizador;
     api.salud()
-      .then((r) => activo && setEstado(`Servidor: conectado · migración ${r.baseDeDatos.migracion}`))
-      .catch((e) => activo && setEstado(`Servidor: sin conexión (${e.codigo})`));
-    return () => { activo = false; };
-  }, []);
-  return <Text style={styles.servidor} testID="estado-servidor">{estado}</Text>;
+      .then((datos) => activo && setEstado(diagnosticoServidor({ ok: true, datos }, API_URL)))
+      .catch((error) => {
+        if (!activo) return;
+        setEstado(diagnosticoServidor({ ok: false, error }, API_URL));
+        temporizador = setTimeout(() => setIntento((n) => n + 1), 5000);
+      });
+    return () => { activo = false; clearTimeout(temporizador); };
+  }, [intento]);
+  return (
+    <Pressable onPress={() => setIntento((n) => n + 1)} accessibilityRole="button" accessibilityLabel="Comprobar el servidor de nuevo">
+      <Text style={styles.servidor} testID="estado-servidor">{estado}</Text>
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({

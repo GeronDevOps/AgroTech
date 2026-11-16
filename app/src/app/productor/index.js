@@ -18,7 +18,8 @@ export default function InicioProductor() {
   const sync = useSincronizacion();
   const [pendientes, setPendientes] = useState(0);
   const [sinLeer, setSinLeer] = useState(0);
-  const { versionPedidos } = useTiempoReal();
+  const { versionPedidos, versionNotificaciones } = useTiempoReal();
+  const [avisos, setAvisos] = useState(0);
   const [confirmarSalida, setConfirmarSalida] = useState(false);
 
   // Al volver al inicio se cuentan los pedidos por atender (RF-13). Sin red, con la copia del teléfono.
@@ -36,6 +37,12 @@ export default function InicioProductor() {
     return () => { vigente = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- versionPedidos (tiempo real) solo dispara la recarga
   }, [versionPedidos]));
+
+  // CU-16 A1: avisos sin leer de la bandeja interna.
+  useFocusEffect(useCallback(() => {
+    api.notificaciones().then((r) => setAvisos(r.sinLeer)).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- versionNotificaciones (tiempo real) solo dispara la recarga
+  }, [versionNotificaciones]));
 
   const enCola = sync.pendientes + sync.conError;
   const detalleProductos = sync.conError ? `${sync.conError} con error` : sync.pendientes ? `${sync.pendientes} sin sincronizar` : null;
@@ -64,6 +71,11 @@ export default function InicioProductor() {
           icono="✉" titulo="Mensajes" color={colores.mosaicos.mensajes}
           detalle={sinLeer ? `${sinLeer} sin leer` : null} alerta={sinLeer > 0}
           onPress={() => router.push('/productor/mensajes')} />
+        <Mosaico
+          icono="🔔" titulo="Avisos" color={colores.mosaicos.pedidos}
+          detalle={avisos ? `${avisos} sin leer` : null} alerta={avisos > 0}
+          onPress={() => router.push('/productor/avisos')} />
+        <Mosaico icono="👤" titulo="Mi cuenta" color={colores.mosaicos.ventas} onPress={() => router.push('/productor/cuenta')} />
       </View>
       {confirmarSalida ? (
         <Aviso

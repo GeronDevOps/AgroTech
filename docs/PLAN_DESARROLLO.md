@@ -10,6 +10,7 @@ Cada fase termina con pruebas en verde, fusión a `develop` y aprobación del Pr
 | 4. Pedidos y pago | Carrito, confirmar pedido idempotente, estados del pedido, pedidos activos del consumidor, pago en línea opcional con Wompi ([ADR-001](decisiones/ADR-001-pasarela-de-pago.md)) | AGRO-8, 9, 19, 21 | RF-04, RF-13, RF-15a, RF-21 | Terminada |
 | 5. Sin conexión | Caché local, cola de operaciones y sincronización asíncrona | AGRO-10 | RF-17 | Terminada |
 | 6. Comunicación y ventas | Chat por pedido, calificaciones, panel de ventas, push de pedido nuevo | AGRO-11, 12, 13, 20 | RF-05, RF-06, RF-07, RF-16a | Terminada |
+| 8. Fase 2 del SRS (v1.1.0) | Recuperar contraseña, perfil, privacidad (Ley 1581), pausar/retirar, búsqueda y cercanía, cancelar, historial, avisos completos, reportes y panel de administración | AGRO-22 … 29 | RF-08, RF-09, RF-10, RF-11, RF-12, RF-14, RF-15, RF-16, RF-18, RF-19, RF-20 | Terminada · API 232, App 87, Sistema 51 pruebas en verde |
 | 7. Despliegue y pruebas | Pruebas de sistema automatizadas, AWS (EC2, RDS, S3), APK con EAS, kit del piloto y de la validación UCD | AGRO-14, 15, 16, 17 | RNF-01…RNF-10 | Terminada (ejecución en campo programada) |
 
 ## Fase 7 · estado por tarjeta

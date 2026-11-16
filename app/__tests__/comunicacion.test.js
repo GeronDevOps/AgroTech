@@ -30,8 +30,7 @@ const msg = (extra) => ({ id: 'm-1', idPedido: 'ped-1', idEmisor: 'u-rosa', cont
 async function abrirComo(usuario, ruta, manejadores) {
   global.__almacenSeguro.set('agrotech.sesion', JSON.stringify(sesionDe(usuario)));
   const llamadas = apiFalsa({ 'GET /auth/yo': () => [200, { usuario }], ...manejadores });
-  const render = renderRouter('./src/app', { initialUrl: '/' });
-  await render;
+  const render = await renderRouter('./src/app', { initialUrl: '/' });
   await waitFor(() => expect(screen.queryByLabelText('Cargando')).toBeNull());
   if (render.getPathname() !== ruta) await act(async () => router.push(ruta));
   await waitFor(() => expect(render.getPathname()).toBe(ruta));

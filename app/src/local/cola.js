@@ -80,6 +80,27 @@ export async function encolarCreacion(entidad, idEntidad, payload) {
   return insertar(db, { tipo: 'CREAR', entidad, idEntidad, payload });
 }
 
+/**
+ * Fase 2: otras operaciones JSON hechas sin señal que van por /sync/push:
+ *   PRODUCTO.ESTADO (CU-10 A4), PERFIL.EDITAR (CU-09 A3), REPORTE.CREAR (CU-19 A3).
+ * Un cambio de perfil pendiente se combina con el anterior (el último valor de cada campo gana).
+ */
+export async function encolarOperacion(entidad, tipo, idEntidad, payload) {
+  return enTransaccion(async (tx) => {
+    if (entidad === 'PERFIL') {
+      const previa = await tx.getFirstAsync(
+        "SELECT * FROM cola_operaciones WHERE entidad = 'PERFIL' AND tipo = 'EDITAR' AND estado = 'PENDIENTE' ORDER BY creado_en LIMIT 1",
+      );
+      if (previa) {
+        const op = aOperacion(previa);
+        await tx.runAsync('UPDATE cola_operaciones SET payload = ? WHERE id_operacion = ?', JSON.stringify({ ...op.payload, ...payload }), op.id);
+        return op.id;
+      }
+    }
+    return insertar(tx, { tipo, entidad, idEntidad, payload });
+  });
+}
+
 /** Operaciones por enviar, en orden cronológico (CU-17 paso 3). */
 export async function pendientesEnOrden() {
   const db = await baseLocal();

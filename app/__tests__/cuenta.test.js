@@ -8,8 +8,7 @@ beforeEach(() => {
 });
 
 async function abrirEn(ruta) {
-  const render = renderRouter('./src/app', { initialUrl: ruta });
-  await render;
+  const render = await renderRouter('./src/app', { initialUrl: ruta });
   await waitFor(() => expect(screen.queryByLabelText('Cargando')).toBeNull());
   return { getPathname: () => render.getPathname() };
 }

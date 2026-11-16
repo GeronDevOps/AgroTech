@@ -23,7 +23,7 @@ const errores = {
   noDisponible: (mensaje = 'Servicio no disponible.') => new HttpError(503, 'NO_DISPONIBLE', mensaje),
 
   // Autenticación (CU-01, CU-21)
-  sesionExpirada: () => new HttpError(401, 'SESION_EXPIRADA', 'La sesión expiró. Inicie sesión de nuevo.'),
+  sesionExpirada: (mensaje = 'La sesión expiró. Inicie sesión de nuevo.') => new HttpError(401, 'SESION_EXPIRADA', mensaje),
   credencialesInvalidas: () => new HttpError(401, 'CREDENCIALES_INVALIDAS', 'Credenciales inválidas.'),
   cuentaBloqueada: (bloqueadoHasta, mensaje = 'Cuenta bloqueada temporalmente por intentos fallidos.') =>
     new HttpError(423, 'CUENTA_BLOQUEADA', mensaje, { bloqueadoHasta }),

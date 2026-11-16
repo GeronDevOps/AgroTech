@@ -12,8 +12,7 @@ beforeEach(() => {
 
 // renderRouter devuelve una promesa (RNTL 14) a la que expo-router agrega getPathname().
 async function abrirApp() {
-  const render = renderRouter('./src/app', { initialUrl: '/' });
-  await render;
+  const render = await renderRouter('./src/app', { initialUrl: '/' });
   await waitFor(() => expect(screen.queryByLabelText('Cargando')).toBeNull());
   return { getPathname: () => render.getPathname() };
 }
@@ -31,7 +30,7 @@ describe('Navegación por rol con sesión real (AGRO-3 · AGRO-5)', () => {
     const app = await abrirApp();
     expect(app.getPathname()).toBe('/');
     expect(screen.getByText('Crear cuenta')).toBeTruthy();
-    await waitFor(() => expect(screen.getByTestId('estado-servidor')).toHaveTextContent('Servidor: conectado · migración 001'));
+    await waitFor(() => expect(screen.getByTestId('estado-servidor')).toHaveTextContent(/^Servidor: conectado \(http.*\) · migración 001/));
   });
 
   test('el productor inicia sesión, llega a sus accesos y el token queda en el almacén seguro', async () => {

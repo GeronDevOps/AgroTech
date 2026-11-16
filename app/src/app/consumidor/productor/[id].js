@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { BotonReportar } from '../../../componentes/BotonReportar';
 import { Aviso } from '../../../componentes/Aviso';
 import { Estrellas } from '../../../componentes/Calificacion';
 import { api } from '../../../api/cliente';
@@ -42,7 +43,9 @@ export default function OpinionesProductor() {
             <Text style={styles.fecha}>{fechaCorta(item.fecha).slice(0, 5)}</Text>
           </View>
           {item.comentario ? <Text style={styles.comentario}>{item.comentario}</Text> : null}
+          {item.oculto ? <Text style={styles.autor}>(Comentario ocultado por la administración)</Text> : null}
           <Text style={styles.autor}>— {item.consumidor}</Text>
+          {item.id && item.comentario ? <BotonReportar tipo="CALIFICACION" id={item.id} titulo={`Comentario de ${item.consumidor}`} etiqueta="Reportar comentario" /> : null}
         </View>
       )}
       ListEmptyComponent={<Text style={styles.vacio} testID="sin-opiniones">Este productor aún no tiene calificaciones.</Text>}

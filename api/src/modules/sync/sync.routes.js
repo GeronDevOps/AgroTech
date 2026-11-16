@@ -11,9 +11,9 @@ const { createSyncService } = require('./sync.service');
  *   POST /sync/push   JWT   aplica la cola del teléfono; un resultado por idOperacion
  *   GET  /sync/pull   JWT   cambios desde la última sincronización (?desde=ISO&despuesDe=uuid)
  */
-function syncRoutes({ pool, tokens, almacenFotos, productosService, mensajesService, calificacionesService }) {
+function syncRoutes({ pool, tokens, almacenFotos, productosService, mensajesService, calificacionesService, perfilService, reportesService }) {
   const syncService = createSyncService({
-    pool, syncRepository: createSyncRepository({ pool }), productosService, mensajesService, calificacionesService, almacenFotos,
+    pool, syncRepository: createSyncRepository({ pool }), productosService, mensajesService, calificacionesService, perfilService, reportesService, almacenFotos,
   });
   const base = (req) => config.fotos.urlBase || `${req.protocol}://${req.get('host')}/fotos`;
   const auth = autenticar(tokens);

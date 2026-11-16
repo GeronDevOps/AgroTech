@@ -17,7 +17,7 @@ const errorPublico = (err) => ({ codigo: err.codigo, mensaje: err.message, ...(e
  * CU-02 (publicar con foto) no pasa por aquí: va a POST /productos, idempotente por el id del teléfono.
  * `alConfirmar` (opcional): avisos en tiempo real que salen solo después de confirmar la transacción.
  */
-function crearManejadores({ productosService, mensajesService, calificacionesService }) {
+function crearManejadores({ productosService, mensajesService, calificacionesService, perfilService, reportesService }) {
   return {
     'PRODUCTO.EDITAR': {
       rol: 'PRODUCTOR',
@@ -25,6 +25,31 @@ function crearManejadores({ productosService, mensajesService, calificacionesSer
         if (!op.idEntidad || !op.datos) throw errores.datosInvalidos('PRODUCTO.EDITAR requiere idEntidad y datos.');
         const { producto } = await productosService.editar({ usuario, id: op.idEntidad, cambios: op.datos, baseFotos, db });
         return { producto };
+      },
+    },
+    // CU-10 A4: pausar, reactivar o retirar sin señal. datos = { accion, version }.
+    'PRODUCTO.ESTADO': {
+      rol: 'PRODUCTOR',
+      ejecutar: async ({ db, usuario, op, baseFotos }) => {
+        if (!op.idEntidad || !op.datos) throw errores.datosInvalidos('PRODUCTO.ESTADO requiere idEntidad y datos.');
+        const { producto } = await productosService.cambiarEstado({ usuario, id: op.idEntidad, body: op.datos, baseFotos, db });
+        return { producto };
+      },
+    },
+    // CU-09 A3: datos del perfil cambiados sin señal.
+    'PERFIL.EDITAR': {
+      ejecutar: async ({ db, usuario, op, baseFotos }) => {
+        if (!op.datos) throw errores.datosInvalidos('PERFIL.EDITAR requiere datos.');
+        const { perfil } = await perfilService.actualizar({ usuario, body: op.datos, baseFotos, db });
+        return { perfil };
+      },
+    },
+    // CU-19 A3: reporte guardado sin señal. idEntidad = id del reporte generado en el teléfono.
+    'REPORTE.CREAR': {
+      ejecutar: async ({ db, usuario, op }) => {
+        if (!op.idEntidad || !op.datos) throw errores.datosInvalidos('REPORTE.CREAR requiere idEntidad y datos.');
+        const { reporte } = await reportesService.crear({ usuario, body: { ...op.datos, id: op.idEntidad }, db });
+        return { reporte };
       },
     },
     // CU-05 A1: mensaje escrito sin señal. idEntidad = id del mensaje generado en el teléfono.
@@ -50,8 +75,8 @@ function crearManejadores({ productosService, mensajesService, calificacionesSer
 /**
  * Capa de negocio de CU-17 / RF-17: aplica la cola del teléfono y entrega los cambios desde la última sincronización.
  */
-function createSyncService({ pool, syncRepository: repo, productosService, mensajesService, calificacionesService, almacenFotos }) {
-  const manejadores = crearManejadores({ productosService, mensajesService, calificacionesService });
+function createSyncService({ pool, syncRepository: repo, productosService, mensajesService, calificacionesService, perfilService, reportesService, almacenFotos }) {
+  const manejadores = crearManejadores({ productosService, mensajesService, calificacionesService, perfilService, reportesService });
 
   /**
    * Aplica una operación en su propia transacción.

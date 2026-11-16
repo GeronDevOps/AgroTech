@@ -66,7 +66,21 @@ export async function aplicarPull({ productos = [], retirados = [], pedidos, com
 }
 
 /** CU-03 sin red: mismos filtros y orden que la API, sobre la copia local. */
-export async function catalogoLocal({ municipio, categoria, precioMin, precioMax, pagina = 1, tamano = 20 }) {
+const sinTildesMin = (t) => String(t || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+/** Orden local equivalente al del servidor (CU-11 paso 3). "cercania" no está disponible sin señal (CU-12 A3). */
+const ORDEN_LOCAL = {
+  recientes: (a, b) => String(b.fechaPublicacion).localeCompare(String(a.fechaPublicacion)),
+  precio_asc: (a, b) => a.precio - b.precio,
+  precio_desc: (a, b) => b.precio - a.precio,
+  calificacion: (a, b) => ((b.productor.calificacion.promedio || 0) - (a.productor.calificacion.promedio || 0)),
+};
+
+/**
+ * CU-03 A2 / CU-11 A2: catálogo desde la copia del teléfono con los mismos filtros, búsqueda y orden.
+ * La búsqueda ignora mayúsculas y tildes como en el servidor.
+ */
+export async function catalogoLocal({ municipio, categoria, precioMin, precioMax, q, orden = 'recientes', pagina = 1, tamano = 20 }) {
   const cond = ["estado = 'ACTIVA'", 'stock > 0'];
   const params = [];
   if (municipio) { cond.push('municipio = ?'); params.push(municipio); }
@@ -75,12 +89,22 @@ export async function catalogoLocal({ municipio, categoria, precioMin, precioMax
   if (precioMax !== null && precioMax !== undefined) { cond.push('precio <= ?'); params.push(precioMax); }
   const where = cond.join(' AND ');
   const db = await baseLocal();
-  const total = (await db.getFirstAsync(`SELECT count(*) AS n FROM cache_producto WHERE ${where}`, ...params)).n;
-  const filas = await db.getAllAsync(
-    `SELECT datos FROM cache_producto WHERE ${where} ORDER BY fecha_publicacion DESC, id_producto LIMIT ? OFFSET ?`,
-    ...params, tamano, (pagina - 1) * tamano,
-  );
-  return { productos: leer(filas), pagina, tamano, total, hayMas: pagina * tamano < total };
+  if (!q && (!orden || orden === 'recientes')) {
+    const total = (await db.getFirstAsync(`SELECT count(*) AS n FROM cache_producto WHERE ${where}`, ...params)).n;
+    const filas = await db.getAllAsync(
+      `SELECT datos FROM cache_producto WHERE ${where} ORDER BY fecha_publicacion DESC, id_producto LIMIT ? OFFSET ?`,
+      ...params, tamano, (pagina - 1) * tamano,
+    );
+    return { productos: leer(filas), pagina, tamano, total, hayMas: pagina * tamano < total };
+  }
+  let todos = leer(await db.getAllAsync(`SELECT datos FROM cache_producto WHERE ${where}`, ...params));
+  if (q) {
+    const buscado = sinTildesMin(q);
+    todos = todos.filter((p) => sinTildesMin(`${p.nombre} ${p.descripcion || ''}`).includes(buscado));
+  }
+  todos.sort(ORDEN_LOCAL[orden] || ORDEN_LOCAL.recientes);
+  const productos = todos.slice((pagina - 1) * tamano, pagina * tamano);
+  return { productos, pagina, tamano, total: todos.length, hayMas: pagina * tamano < todos.length };
 }
 
 export async function productoLocal(id) {
@@ -98,10 +122,18 @@ export async function misProductosLocal(idProductor) {
 }
 
 /** CU-15 / CU-13 sin red. */
-export async function pedidosLocal({ soloActivos = true } = {}) {
+/** CU-15 A2: pedidos guardados en el teléfono. `grupo`: activos | finalizados | todos (RF-15); `desde`: AAAA-MM-DD. */
+export async function pedidosLocal({ soloActivos = true, grupo, desde } = {}) {
+  const g = grupo || (soloActivos ? 'activos' : 'todos');
+  const cond = [];
+  if (g === 'activos') cond.push(`estado IN ${ACTIVOS}`);
+  if (g === 'finalizados') cond.push(`estado NOT IN ${ACTIVOS}`);
+  const params = [];
+  if (desde) { cond.push('fecha >= ?'); params.push(desde); }
   const db = await baseLocal();
   return leer(await db.getAllAsync(
-    `SELECT datos FROM cache_pedido ${soloActivos ? `WHERE estado IN ${ACTIVOS}` : ''} ORDER BY fecha DESC LIMIT 50`,
+    `SELECT datos FROM cache_pedido ${cond.length ? `WHERE ${cond.join(' AND ')}` : ''} ORDER BY fecha DESC LIMIT 50`,
+    ...params,
   ));
 }
 

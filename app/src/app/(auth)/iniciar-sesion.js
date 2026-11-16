@@ -81,6 +81,7 @@ export default function IniciarSesion() {
           onPress={ingresar}
           deshabilitado={enviando || !enLinea}
         />
+        <BotonGrande titulo="¿Olvidó su contraseña?" variante="secundario" onPress={() => router.push('/recuperar')} />
         <Text style={styles.separador}>¿Todavía no tiene cuenta?</Text>
         <BotonGrande titulo="Crear cuenta" variante="secundario" onPress={() => router.replace('/registro')} />
       </ScrollView>

@@ -1,13 +1,14 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
-const { local, API, WEB, BASE_DATOS, WOMPI_ENTORNO_LOCAL } = require('./entorno');
+const { local, API, WEB, BASE_DATOS, WOMPI_ENTORNO_LOCAL, BUZON } = require('./entorno');
 
 /**
  * AGRO-14 · Pruebas de sistema (caja negra) de AgroTech.
  *   npm run preparar   → migra la base E2E y compila la app web contra la API de pruebas (solo en local)
  *   npm test           → ejecuta los proyectos "api" y "ui" y genera:
  *                        informe-html/ (detalle con trazas y capturas), resultados/junit.xml (CI)
- *                        y resultados/informe-cp.md (matriz CP-01…CP-19 → resultado, para el informe de pruebas)
+ *                        y resultados/informe-cp.md (matriz CP-01…CP-30 → resultado, para el informe de pruebas)
+ *                        resultados/capturas/ guarda las evidencias (capturas) de cada caso de interfaz
  */
 module.exports = defineConfig({
   timeout: 60_000,
@@ -39,6 +40,7 @@ module.exports = defineConfig({
         isMobile: false, // la vista web de Expo no necesita emulación táctil; se conserva el tamaño de teléfono
         hasTouch: false,
         baseURL: WEB,
+        screenshot: 'on', // evidencia final de cada prueba de interfaz (además de las capturas por paso)
         ...(process.env.CHROMIUM_EJECUTABLE ? { launchOptions: { executablePath: process.env.CHROMIUM_EJECUTABLE } } : {}),
       },
     },
@@ -58,6 +60,8 @@ module.exports = defineConfig({
         JWT_SECRETO: 'e2e-secreto-de-pruebas-de-sistema-0123456789',
         CORS_ORIGINS: WEB,
         BCRYPT_COSTO: '10',
+        CORREO_DRIVER: 'archivo', // CP-20: el código de recuperación queda en el buzón que leen las pruebas
+        CORREO_DIR: BUZON,
         ...WOMPI_ENTORNO_LOCAL,
         ...(process.env.MIGRATIONS_DIR ? { MIGRATIONS_DIR: process.env.MIGRATIONS_DIR } : {}),
       },

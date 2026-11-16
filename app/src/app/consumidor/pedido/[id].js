@@ -6,6 +6,8 @@ import { BotonGrande } from '../../../componentes/BotonGrande';
 import { Aviso } from '../../../componentes/Aviso';
 import { DetallePedido } from '../../../componentes/DetallePedido';
 import { BotonChat } from '../../../componentes/BotonChat';
+import { CancelarPedido } from '../../../componentes/CancelarPedido';
+import { BotonReportar } from '../../../componentes/BotonReportar';
 import { CalificarPedido } from '../../../componentes/Calificacion';
 import { useSincronizacion } from '../../../sync/SincronizacionContext';
 import { useTiempoReal } from '../../../tiempoReal/TiempoRealContext';
@@ -117,7 +119,12 @@ export default function PedidoConsumidor() {
       ) : null}
       {pedido.estado === 'ENTREGADO' ? <CalificarPedido pedido={pedido} enCola={calificacionEnCola} onCalificado={cargar} /> : null}
       <BotonChat pedido={pedido} rol="CONSUMIDOR" contraparte={pedido.productor.nombre} />
+      <CancelarPedido
+        pedido={pedido} rol="CONSUMIDOR" enLinea={enLinea && !desdeCache}
+        onCancelado={(r) => { setPedido(r.pedido); setAviso({ tipo: 'info', mensaje: r.reembolsoPendiente ? '✓ Pedido cancelado. La asociación le contactará para el reembolso del pago en línea.' : '✓ Pedido cancelado. Se avisó al productor.' }); }}
+      />
       <DetallePedido pedido={pedido} contraparte={pedido.productor.nombre} />
+      <BotonReportar tipo="PEDIDO" id={pedido.id} titulo={`Pedido a ${pedido.productor.nombre}`} etiqueta="Reportar un problema con este pedido" />
     </ScrollView>
   );
 }
