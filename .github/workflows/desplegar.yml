@@ -38,11 +38,11 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/agrotech_test
-    defaults: { run: { working-directory: api } }
+    defaults: { run: { working-directory: 02_Codigo/agrotech/api } }
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
-        with: { node-version: 22, cache: npm, cache-dependency-path: api/package-lock.json }
+        with: { node-version: 22, cache: npm, cache-dependency-path: 02_Codigo/agrotech/api/package-lock.json }
       - run: npm ci
       - run: npm run lint
       - run: npm test -- --ci
@@ -63,7 +63,7 @@ jobs:
           if [ "$GITHUB_REF_TYPE" = tag ]; then V="$GITHUB_REF_NAME"; else V="sha-$(git rev-parse --short=12 HEAD)"; fi
           echo "version=$V" >> "$GITHUB_OUTPUT"
       - name: Empaquetar (api, migraciones e infra; sin node_modules ni secretos)
-        run: git archive --format=tar.gz -o version.tar.gz HEAD api db infra
+        run: git archive --format=tar.gz -o version.tar.gz HEAD:02_Codigo/agrotech api db infra
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROL_DESPLIEGUE }}
