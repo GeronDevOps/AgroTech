@@ -1,0 +1,21 @@
+# Dependencias y compilados
+node_modules/
+dist/
+web-build/
+.expo/
+coverage/
+
+# Variables de entorno y credenciales: nunca al repositorio
+.env
+.env.*
+!.env.example
+*firebase-adminsdk*.json
+google-services.json
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*.docx
+.vscode/
+.idea/
