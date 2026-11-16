@@ -1,0 +1,20 @@
+{
+  "name": "agrotech-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AGRO-14 · Pruebas de sistema automatizadas (caja negra): casos CP-01…CP-30 y banco de pruebas BP-001…BP-103 sobre la API REST, el WebSocket y la app (vista web).",
+  "scripts": {
+    "preparar": "node soporte/preparar.js",
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=ui",
+    "informe": "playwright show-report informe-html",
+    "banco": "playwright test -c playwright.banco.config.js",
+    "banco:informe": "playwright show-report informe-banco-html"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "ws": "^8.22.0"
+  }
+}

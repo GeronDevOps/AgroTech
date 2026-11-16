@@ -1,0 +1,16 @@
+// https://docs.expo.dev/guides/using-eslint/
+const { defineConfig } = require('eslint/config');
+const expoConfig = require('eslint-config-expo/flat');
+
+module.exports = defineConfig([
+  expoConfig,
+  { ignores: ['dist/*', '.expo/*'] },
+  {
+    files: ['app.config.js', 'metro.config.js'],
+    languageOptions: { globals: { __dirname: 'readonly', require: 'readonly', module: 'writable', process: 'readonly' } },
+  },
+  {
+    files: ['__tests__/**/*.js', 'jest.setup.js', 'jest/**/*.js'],
+    languageOptions: { globals: { jest: 'readonly', describe: 'readonly', test: 'readonly', expect: 'readonly', beforeEach: 'readonly', afterEach: 'readonly', beforeAll: 'readonly', afterAll: 'readonly' } },
+  },
+]);

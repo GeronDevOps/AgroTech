@@ -1,0 +1,44 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (nunca se suben)
+.env
+.env.*
+!.env.example
+
+# Expo / React Native
+app/.expo/
+app/dist/
+app/web-build/
+app/android/
+app/ios/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+
+# Pruebas y registros
+coverage/
+*.log
+npm-debug.log*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Fotos del driver local de la API
+api/uploads/
+api/tmp/
+
+# Credenciales de Firebase (FCM) y de Google: nunca al repositorio
+*firebase-adminsdk*.json
+fcm-credenciales*.json
+app/google-services.json
+
+# Pruebas de sistema (AGRO-14)
+e2e/node_modules/
+e2e/informe-html/
+e2e/resultados/
+e2e/informe-banco-html/
