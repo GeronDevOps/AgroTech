@@ -1,5 +1,3 @@
-# AgroTech
-Proyecto AgroTech
 # 🌱 AgroTech
 
 ### Plataforma móvil para la comercialización directa de productos agrícolas en Norte de Santander
@@ -8,9 +6,42 @@ AgroTech es una aplicación móvil orientada a conectar **productores agrícolas
 
 El proyecto contempla un **Producto Mínimo Viable (MVP)** con catálogo de productos, gestión de inventario, pedidos, comunicación entre usuarios, calificaciones y herramientas básicas de seguimiento de ventas.
 
-> **Estado:** 🚧 En desarrollo — MVP
+> **Estado:** ✅ Versión 1.1.1 — MVP y Fase 2 del SRS implementados y probados; pendiente el piloto con usuarios
 > **Contexto:** Proyecto académico de Ingeniería de Software II
 > **Universidad de Pamplona — 2026**
+
+---
+
+## 🗂️ Organización del repositorio
+
+| Sección | Contenido |
+|---|---|
+| [`01_Documentacion/`](01_Documentacion) | Entregas 1 a 5, diagramas, gestión (cronograma y Gantt), decisiones técnicas (ADR), base de datos, manuales técnicos, piloto UCD, evidencias por fase e historial de versiones |
+| [`02_Codigo/agrotech/`](02_Codigo/agrotech) | Monorepo del sistema: `api` (Node.js + Express), `app` (React Native / Expo SDK 58), `db` (migraciones PostgreSQL + PostGIS), `e2e` (Playwright), `infra` (AWS) y `docs`, con el historial de commits del desarrollo (AGRO-*) |
+| [`02_Codigo/Versiones_anteriores/`](02_Codigo/Versiones_anteriores) | Repositorio al cierre de cada fase (1 a 7) |
+| [`03_Pruebas_del_Sistema/`](03_Pruebas_del_Sistema) | Casos CP-01 a CP-30, banco de pruebas BP-001 a BP-103, informe del MVP y registro de errores, con capturas, consolas e informes HTML |
+| [`.github/`](.github) | Integración continua (lint, pruebas, migraciones), pruebas de sistema y despliegue |
+
+Cada sección tiene su propio `README.md` con el detalle de sus carpetas.
+
+### Resultados de pruebas (v1.1.1)
+
+| Nivel | Pruebas | Resultado |
+|---|---|---|
+| API: unitarias e integración (Jest) | 244 | 244 pasan · cobertura 95,7 % de líneas |
+| App: componentes y navegación (Jest + Testing Library) | 97 | 97 pasan |
+| Sistema CP-01 … CP-30 (Playwright) | 30 casos | 28 PASA · 2 manuales (piloto) |
+| Banco de pruebas BP-001 … BP-103 (Playwright) | 103 casos | 100 PASA · 3 manuales (piloto) · estable 300/300 |
+
+### Ejecutar en local
+
+```bash
+cd 02_Codigo/agrotech/api && npm install && npm run dev      # aplica las migraciones pendientes al arrancar
+cd 02_Codigo/agrotech/app && npm install && npx expo start   # EXPO_PUBLIC_API_URL=auto en app/.env
+cd 02_Codigo/agrotech/e2e && npm install && npm run preparar && npm test && npm run banco
+```
+
+En Windows: `02_Codigo/agrotech/herramientas/windows/iniciar-agrotech.cmd`. Guía completa en [02_Codigo/agrotech/README.md](02_Codigo/agrotech/README.md).
 
 ---
 
@@ -545,67 +576,63 @@ Las métricas son consideradas inicialmente como valores de planificación y deb
 
 ### Fase 1 — Fundamentos
 
-* [ ] Configuración del repositorio.
-* [ ] Configuración del proyecto React Native.
-* [ ] Configuración del backend Node.js.
-* [ ] Configuración de PostgreSQL.
-* [ ] Configuración del entorno de desarrollo.
-* [ ] Definición de ramas y flujo Git.
+* [x] Configuración del repositorio.
+* [x] Configuración del proyecto React Native.
+* [x] Configuración del backend Node.js.
+* [x] Configuración de PostgreSQL.
+* [x] Configuración del entorno de desarrollo.
+* [x] Definición de ramas y flujo Git.
 
 ### Fase 2 — Autenticación
 
-* [ ] Registro.
-* [ ] Inicio de sesión.
-* [ ] Roles Productor / Consumidor.
-* [ ] JWT.
-* [ ] Hashing de contraseñas.
-* [ ] Recuperación de contraseña.
+* [x] Registro.
+* [x] Inicio de sesión.
+* [x] Roles Productor / Consumidor.
+* [x] JWT.
+* [x] Hashing de contraseñas.
+* [x] Recuperación de contraseña.
 
 ### Fase 3 — Productos y catálogo
 
-* [ ] Publicación de productos.
-* [ ] Gestión de inventario.
-* [ ] Carga de fotografías.
-* [ ] Catálogo.
-* [ ] Filtros.
-* [ ] Búsqueda.
-* [ ] Ordenamiento.
+* [x] Publicación de productos.
+* [x] Gestión de inventario.
+* [x] Carga de fotografías.
+* [x] Catálogo.
+* [x] Filtros.
+* [x] Búsqueda.
+* [x] Ordenamiento.
 
 ### Fase 4 — Pedidos
 
-* [ ] Carrito.
-* [ ] Confirmación de pedidos.
-* [ ] Control de inventario.
-* [ ] Estados del pedido.
-* [ ] Cancelación.
-* [ ] Historial.
+* [x] Carrito.
+* [x] Confirmación de pedidos.
+* [x] Control de inventario.
+* [x] Estados del pedido.
+* [x] Cancelación.
+* [x] Historial.
 
 ### Fase 5 — Comunicación
 
-* [ ] Chat.
-* [ ] WebSockets.
-* [ ] Notificaciones.
-* [ ] Eventos relacionados con pedidos.
+* [x] Chat.
+* [x] WebSockets.
+* [x] Notificaciones.
+* [x] Eventos relacionados con pedidos.
 
 ### Fase 6 — Calidad y piloto
 
-* [ ] Pruebas funcionales.
+* [x] Pruebas funcionales.
 * [ ] Pruebas de usabilidad.
-* [ ] Pruebas de conectividad intermitente.
-* [ ] Medición de métricas.
-* [ ] Corrección de errores.
+* [x] Pruebas de conectividad intermitente.
+* [x] Medición de métricas.
+* [x] Corrección de errores.
 * [ ] Piloto con usuarios.
 
 ---
 
 # 🚧 Limitaciones actuales
 
-La primera versión del sistema **no contempla una pasarela de pagos bancaria integrada**.
-
-Las transacciones del MVP se plantean mediante:
-
-* Pago contra entrega.
-* Acuerdos externos entre comprador y productor.
+* El pago en línea (Wompi, [ADR-001](01_Documentacion/04_Decisiones_tecnicas/ADR-001-pasarela-de-pago.md)) está integrado en modo de pruebas (sandbox); el medio principal del piloto sigue siendo el pago contra entrega.
+* Las pruebas de usabilidad (SUS), las notificaciones push con la app cerrada y la prueba en Android de gama baja se ejecutan en el piloto con usuarios.
 
 Además, algunas funcionalidades especificadas en el documento general pueden ser incorporadas posteriormente dependiendo del alcance definitivo del MVP.
 
@@ -613,7 +640,7 @@ Además, algunas funcionalidades especificadas en el documento general pueden se
 
 # 📚 Documentación
 
-La documentación completa del proyecto incluye:
+La documentación completa está en [`01_Documentacion/`](01_Documentacion) (entregas en [`01_Entregas`](01_Documentacion/01_Entregas)) y las pruebas en [`03_Pruebas_del_Sistema/`](03_Pruebas_del_Sistema). Incluye:
 
 * Especificación de Requisitos de Software (SRS).
 * Requisitos funcionales.
@@ -629,6 +656,7 @@ La documentación completa del proyecto incluye:
 * Métricas del proyecto y proceso.
 * Métricas de calidad.
 * Referencias bibliográficas.
+* Informe de pruebas del sistema, banco de pruebas y registro de errores.
 
 ---
 

@@ -1,0 +1,7 @@
+
+Test Suites: 28 passed, 28 total
+Tests:       232 passed, 232 total
+Snapshots:   0 total
+Time:        48.889 s, estimated 51 s
+Ran all test suites.
+Test results written to: ../../evid/api_jest.json

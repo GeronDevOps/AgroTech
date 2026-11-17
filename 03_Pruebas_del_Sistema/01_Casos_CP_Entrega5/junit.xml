@@ -1,0 +1,337 @@
+<testsuites id="" name="" tests="51" failures="0" skipped="0" errors="0" time="63.208752999999994">
+<testsuite name="api/catalogo.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="3" failures="0" skipped="0" time="2.151" errors="0">
+<testcase name="CU-02 / CU-03 / CU-10 · Inventario y catálogo › CP-03: el producto publicado queda Activo y aparece en el catálogo con su foto" classname="api/catalogo.spec.js" time="0.407">
+</testcase>
+<testcase name="CU-02 / CU-03 / CU-10 · Inventario y catálogo › CP-05 (API): el filtro por municipio responde solo ese municipio; p95 del servidor ≤ 500 ms con 10 usuarios a la vez" classname="api/catalogo.spec.js" time="1.398">
+<properties>
+<property name="medición" value="100 consultas (10 concurrentes): p95 = 155 ms · respuesta JSON 14 KB">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-02 / CU-03 / CU-10 · Inventario y catálogo › CP-13: editar precio y cantidad; con 0 pasa a Agotada y sale del catálogo; el pedido previo conserva su precio" classname="api/catalogo.spec.js" time="0.346">
+</testcase>
+</testsuite>
+<testsuite name="api/comunicacion.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="4" failures="0" skipped="0" time="2.888" errors="0">
+<testcase name="CU-05 · Chat por pedido › CP-09: el mensaje llega en tiempo real con su hora" classname="api/comunicacion.spec.js" time="0.725">
+<properties>
+<property name="medición" value="Entrega por WebSocket: p50 9 ms · p95 83 ms (10 mensajes)">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-05 · Chat por pedido › CU-05: un tercero no lee el chat y con el pedido entregado queda en solo lectura" classname="api/comunicacion.spec.js" time="0.528">
+</testcase>
+<testcase name="CU-06 · Calificar al productor › CP-10: calificar dos veces el mismo pedido entregado guarda solo la primera" classname="api/comunicacion.spec.js" time="0.386">
+</testcase>
+<testcase name="CU-07 · Panel de ventas › CP-11: las cifras del mes son iguales a la suma de los pedidos entregados" classname="api/comunicacion.spec.js" time="1.249">
+</testcase>
+</testsuite>
+<testsuite name="api/cuentas.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="3" failures="0" skipped="0" time="0.773" errors="0">
+<testcase name="CU-01 · Cuentas › CP-01: registro con datos válidos y autorización aceptada abre la sesión con su rol" classname="api/cuentas.spec.js" time="0.159">
+</testcase>
+<testcase name="CU-01 · Cuentas › CP-02: cinco contraseñas incorrectas → mensaje genérico y bloqueo de 15 minutos" classname="api/cuentas.spec.js" time="0.595">
+<properties>
+<property name="medición" value="Bloqueo de 15.0 min tras el 5.º intento">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-01 · Cuentas › RNF-04: cabeceras de seguridad, sin X-Powered-By y rutas protegidas exigen JWT" classname="api/cuentas.spec.js" time="0.019">
+</testcase>
+</testsuite>
+<testsuite name="api/fase2.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="11" failures="0" skipped="0" time="5.007" errors="0">
+<testcase name="CU-08 · Recuperar la contraseña › CP-20: código por correo de un solo uso; errado, débil y sesiones anteriores cerradas" classname="api/fase2.spec.js" time="0.574">
+<properties>
+<property name="medición" value="Código en el buzón en 0 ms">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-09 / CU-20 · Perfil y datos personales › CP-21: actualiza contacto y ubicación; celular en uso y cambio de rol se rechazan" classname="api/fase2.spec.js" time="0.358">
+</testcase>
+<testcase name="CU-09 / CU-20 · Perfil y datos personales › CP-22: supresión aplazada con pedidos en curso; sin ellos anonimiza y conserva la transacción" classname="api/fase2.spec.js" time="0.653">
+</testcase>
+<testcase name="CU-10 / CU-11 / CU-12 · Publicaciones, búsqueda y cercanía › CP-23: pausar oculta; retirar con pedido en curso se bloquea; retirar conserva el histórico" classname="api/fase2.spec.js" time="0.67">
+</testcase>
+<testcase name="CU-10 / CU-11 / CU-12 · Publicaciones, búsqueda y cercanía › CP-24: búsqueda sin tildes en nombre y descripción, orden por precio y sugerencias" classname="api/fase2.spec.js" time="0.354">
+<properties>
+<property name="medición" value="Búsqueda «cafe» respondió en 69 ms">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-10 / CU-11 / CU-12 · Publicaciones, búsqueda y cercanía › CP-25: «Cerca de mí» ordena por distancia con el GPS o el perfil y respeta el radio" classname="api/fase2.spec.js" time="0.47">
+<properties>
+<property name="medición" value="Distancias desde Ocaña: Ocaña 0.7 km · Pamplona 123 km">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-14 / CU-15 / CU-16 · Cancelación, historial y avisos › CP-26: cancelar un pedido aceptado restituye el inventario una vez; el entregado no se cancela" classname="api/fase2.spec.js" time="0.514">
+</testcase>
+<testcase name="CU-14 / CU-15 / CU-16 · Cancelación, historial y avisos › CP-27: historial con filtros de estado y fechas, del más reciente al más antiguo" classname="api/fase2.spec.js" time="0.556">
+</testcase>
+<testcase name="CU-14 / CU-15 / CU-16 · Cancelación, historial y avisos › CP-28: aceptar, escribir y cancelar llegan en tiempo real y quedan en la bandeja" classname="api/fase2.spec.js" time="0.245">
+<properties>
+<property name="medición" value="Tres avisos entregados por WebSocket en 20 ms">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-19 / CU-18 · Reportes y moderación › CP-29: reportar una publicación; el repetido está en trámite y «Otro» exige descripción" classname="api/fase2.spec.js" time="0.207">
+</testcase>
+<testcase name="CU-19 / CU-18 · Reportes y moderación › CP-30: el administrador oculta lo reportado y suspende con confirmación; un no administrador no entra" classname="api/fase2.spec.js" time="0.406">
+</testcase>
+</testsuite>
+<testsuite name="api/pagos.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="3" failures="0" skipped="0" time="1.346" errors="0">
+<testcase name="CU-22 · Pago en línea › CP-18 (aprobada): el pago queda aprobado y el productor puede aceptar" classname="api/pagos.spec.js" time="0.661">
+</testcase>
+<testcase name="CU-22 · Pago en línea › CP-18 (rechazada): se puede reintentar con otra referencia o cambiar a contra entrega" classname="api/pagos.spec.js" time="0.437">
+</testcase>
+<testcase name="CU-22 · Pago en línea › CP-19: firma alterada → 401 sin cambios; evento repetido → no se reprocesa" classname="api/pagos.spec.js" time="0.248">
+</testcase>
+</testsuite>
+<testsuite name="api/pedidos.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="5" failures="0" skipped="0" time="2.094" errors="0">
+<testcase name="CU-04 · Confirmar pedido › CP-06: con stock suficiente se descuenta, queda «Pendiente» y el productor recibe el aviso" classname="api/pedidos.spec.js" time="0.408">
+<properties>
+<property name="medición" value="Aviso «pedido_nuevo» al productor en 58 ms">
+</property>
+</properties>
+</testcase>
+<testcase name="CU-04 · Confirmar pedido › CP-07: dos consumidores compran a la vez la última unidad; solo uno lo logra" classname="api/pedidos.spec.js" time="0.288">
+</testcase>
+<testcase name="CU-04 · Confirmar pedido › CP-16: reenviar con la misma Idempotency-Key devuelve el mismo comprobante y descuenta una vez" classname="api/pedidos.spec.js" time="0.309">
+</testcase>
+<testcase name="CU-13 · Estados del pedido › CP-08: avanza por todos los estados con fecha y el salto se bloquea" classname="api/pedidos.spec.js" time="0.442">
+</testcase>
+<testcase name="CU-15 · Mis pedidos › CP-14: aparecen los pedidos activos con su estado vigente" classname="api/pedidos.spec.js" time="0.647">
+</testcase>
+</testsuite>
+<testsuite name="api/sincronizacion.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="api" tests="3" failures="0" skipped="0" time="0.635" errors="0">
+<testcase name="CU-17 · Sincronización asíncrona › CP-17: edición sin conexión con versión vieja → «Con error»; prevalece el servidor" classname="api/sincronizacion.spec.js" time="0.135">
+</testcase>
+<testcase name="CU-17 · Sincronización asíncrona › RNF-03: una operación válida se aplica una sola vez aunque se reenvíe" classname="api/sincronizacion.spec.js" time="0.261">
+</testcase>
+<testcase name="CU-17 · Sincronización asíncrona › CU-17 paso 4: /sync/pull trae lo cambiado desde la última marca" classname="api/sincronizacion.spec.js" time="0.239">
+</testcase>
+</testsuite>
+<testsuite name="ui/cuenta_catalogo.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="ui" tests="3" failures="0" skipped="0" time="23.644" errors="0">
+<testcase name="CP-01 (UI): registrarse como consumidor abre la sesión en el catálogo" classname="ui/cuenta_catalogo.spec.js" time="3.341">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/cuenta_catalogo-CP-01-UI-r-491fa-re-la-sesión-en-el-catálogo-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-04: publicar en modo avión queda «Pendiente» y se publica solo al volver la red" classname="ui/cuenta_catalogo.spec.js" time="4.274">
+<properties>
+<property name="medición" value="Publicada 0.4 s después de volver la señal">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/cuenta_catalogo-CP-04-publ-698de-blica-solo-al-volver-la-red-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-05 (UI): filtro por municipio con 3G simulado en máximo 3 s" classname="ui/cuenta_catalogo.spec.js" time="16.029">
+<properties>
+<property name="medición" value="3G (562 ms, 1,44 Mbps): 0.90 s · 0.90 s · 1.14 s · 1.03 s · 1.04 s → p95 1.14 s (umbral 3 s)">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/cuenta_catalogo-CP-05-UI-f-5cfba-n-3G-simulado-en-máximo-3-s-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="ui/fase2.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="ui" tests="11" failures="0" skipped="0" time="52.735" errors="0">
+<testcase name="CP-20 (UI): recuperar la contraseña con el código del correo y entrar con la nueva" classname="ui/fase2.spec.js" time="4.487">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-20-UI-recuperar-l-d2c19-orreo-y-entrar-con-la-nueva-ui/attachments/CP-20-·-solicitar-codigo-224aa2ff9907929d46d227b6da0cfd8171fb122b.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-20-UI-recuperar-l-d2c19-orreo-y-entrar-con-la-nueva-ui/attachments/CP-20-·-codigo-errado-intentos-restantes-98b20d07ada8bc4d72ccb347c31bae633adf6a64.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-20-UI-recuperar-l-d2c19-orreo-y-entrar-con-la-nueva-ui/attachments/CP-20-·-sesion-abierta-con-la-nueva-contrasena-219250e69a8bc0891fd7a310ceaf5aba3b2d6bb1.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-20-UI-recuperar-l-d2c19-orreo-y-entrar-con-la-nueva-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-21 (UI): editar el perfil; el celular de otra cuenta se marca en el campo" classname="ui/fase2.spec.js" time="4.018">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-21-UI-editar-el-p-e5f58-cuenta-se-marca-en-el-campo-ui/attachments/CP-21-·-mi-cuenta-fb1883b876e4b7ebf61de5a9cd5d8416c6ff7fed.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-21-UI-editar-el-p-e5f58-cuenta-se-marca-en-el-campo-ui/attachments/CP-21-·-celular-en-uso-rechazado-9fa56ddd652492ec368500da9eb97dd2e40542ce.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-21-UI-editar-el-p-e5f58-cuenta-se-marca-en-el-campo-ui/attachments/CP-21-·-perfil-guardado-4144d1bd03ea4faf50980f8790b62cef05eafaab.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-21-UI-editar-el-p-e5f58-cuenta-se-marca-en-el-campo-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-22 (UI): consultar mis datos y pedir que los borren; la sesión se cierra" classname="ui/fase2.spec.js" time="5.77">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-22-UI-consultar-m-ee2f8--borren-la-sesión-se-cierra-ui/attachments/CP-22-·-datos-y-autorizacion-eac054e0b50bce1ba70da832112146d1339426ba.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-22-UI-consultar-m-ee2f8--borren-la-sesión-se-cierra-ui/attachments/CP-22-·-consecuencias-de-la-supresion-50ba2e81e4097f96bfe1c6231643cba200cf853d.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-22-UI-consultar-m-ee2f8--borren-la-sesión-se-cierra-ui/attachments/CP-22-·-sesion-cerrada-tras-la-supresion-972a84d6cb8eb36c94b040e500f57e7e62bd3b29.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-22-UI-consultar-m-ee2f8--borren-la-sesión-se-cierra-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-23 (UI): pausar y reactivar una publicación desde «Mis productos»" classname="ui/fase2.spec.js" time="4.284">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-23-UI-pausar-y-re-8a548-ación-desde-«Mis-productos»-ui/attachments/CP-23-·-estado-de-la-publicacion-84fc0dcf4a30831f8209f47b4541ebfa9626e5ff.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-23-UI-pausar-y-re-8a548-ación-desde-«Mis-productos»-ui/attachments/CP-23-·-publicacion-pausada-4a4ee4c2fe6e56c9a16ed2e2029d91c467b0b162.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-23-UI-pausar-y-re-8a548-ación-desde-«Mis-productos»-ui/attachments/CP-23-·-confirmar-retiro-28bf052304e75c108642b2c8c4a7659010a53744.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-23-UI-pausar-y-re-8a548-ación-desde-«Mis-productos»-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-24 (UI): buscar sin tildes, ordenar por precio y recibir sugerencias" classname="ui/fase2.spec.js" time="4.766">
+<properties>
+<property name="medición" value="Resultados de la búsqueda visibles en 269 ms">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-24-UI-buscar-sin--fb5ef-recio-y-recibir-sugerencias-ui/attachments/CP-24-·-busqueda-sin-tildes-1ea7a445a047d0b15df1bba7c2a8b193e7ad862f.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-24-UI-buscar-sin--fb5ef-recio-y-recibir-sugerencias-ui/attachments/CP-24-·-ordenado-por-precio-0fef851862fbe9f5038425959e7b24a1e7821c72.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-24-UI-buscar-sin--fb5ef-recio-y-recibir-sugerencias-ui/attachments/CP-24-·-sin-resultados-con-sugerencias-0aac9a178a59c0ac581a4b19a799166cc627348f.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-24-UI-buscar-sin--fb5ef-recio-y-recibir-sugerencias-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CU-12 con la ubicación del teléfono (Ocaña) › CP-25 (UI): «Cerca de mí» muestra primero lo más cercano con los km y filtra por radio" classname="ui/fase2.spec.js" time="5.52">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CU-12-con-la-ubicaci-ed53c-n-los-km-y-filtra-por-radio-ui/attachments/CP-25-·-ordenado-por-cercania-7b61dd4ed5caab00b538d50e823d772731483fbd.png]]
+
+[[ATTACHMENT|evidencias/fase2-CU-12-con-la-ubicaci-ed53c-n-los-km-y-filtra-por-radio-ui/attachments/CP-25-·-radio-de-25-km-de839005d699c803c24b96dbcafc76932eb38e94.png]]
+
+[[ATTACHMENT|evidencias/fase2-CU-12-con-la-ubicaci-ed53c-n-los-km-y-filtra-por-radio-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-26 (UI): el consumidor cancela un pedido aceptado y el productor recibe el aviso" classname="ui/fase2.spec.js" time="7.186">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-26-UI-el-consumid-95469-l-productor-recibe-el-aviso-ui/attachments/CP-26-·-motivo-de-cancelacion-4a52274be364fdf7e100ee54e6ececbc01ffc9bd.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-26-UI-el-consumid-95469-l-productor-recibe-el-aviso-ui/attachments/CP-26-·-pedido-cancelado-1606a5c592ffbd8389d218d40ae0d9b878cf7418.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-26-UI-el-consumid-95469-l-productor-recibe-el-aviso-ui/attachments/CP-26-·-aviso-al-productor-8ceb752e3329b8b6ab2c6edbf7ca32a56ef8c024.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-26-UI-el-consumid-95469-l-productor-recibe-el-aviso-ui/test-finished-2.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-26-UI-el-consumid-95469-l-productor-recibe-el-aviso-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-27 (UI): «Mis pedidos» separa activos y finalizados y filtra por periodo" classname="ui/fase2.spec.js" time="4.175">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-27-UI-«Mis-pedido-7c262-izados-y-filtra-por-periodo-ui/attachments/CP-27-·-activos-f3d7beed5384880758d389016cf7b5bc99edb3d3.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-27-UI-«Mis-pedido-7c262-izados-y-filtra-por-periodo-ui/attachments/CP-27-·-finalizados-6da2e6c10edc9b4384aad5b907809aeafe26d788.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-27-UI-«Mis-pedido-7c262-izados-y-filtra-por-periodo-ui/attachments/CP-27-·-todos-de-los-ultimos-7-dias-075ada6eee99b7e575f3f5706317583afce4a8a8.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-27-UI-«Mis-pedido-7c262-izados-y-filtra-por-periodo-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-28 (UI): los avisos quedan en la bandeja y el del mensaje abre el chat" classname="ui/fase2.spec.js" time="3.382">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-28-UI-los-avisos--5e91f-el-del-mensaje-abre-el-chat-ui/attachments/CP-28-·-contador-de-avisos-d2647649bf9e7d330c277c3be73cee45f2f688a4.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-28-UI-los-avisos--5e91f-el-del-mensaje-abre-el-chat-ui/attachments/CP-28-·-bandeja-de-avisos-37cfda54f01447c7e999eabbcdb69aa44ebfa262.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-28-UI-los-avisos--5e91f-el-del-mensaje-abre-el-chat-ui/attachments/CP-28-·-el-aviso-abre-el-chat-9d3c93ef24a7e7fd1b7d8a763e5c8566edc2cd65.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-28-UI-los-avisos--5e91f-el-del-mensaje-abre-el-chat-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-29 (UI): reportar una publicación; «Otro» exige descripción y el repetido queda en trámite" classname="ui/fase2.spec.js" time="3.819">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-29-UI-reportar-un-55dc4-l-repetido-queda-en-trámite-ui/attachments/CP-29-·-otro-exige-descripcion-9370e606ba38005fccc33092e0974711aeb88b55.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-29-UI-reportar-un-55dc4-l-repetido-queda-en-trámite-ui/attachments/CP-29-·-reporte-recibido-39e4ad6f7d165cb101dbea679561f8f1fefabe0f.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-29-UI-reportar-un-55dc4-l-repetido-queda-en-trámite-ui/attachments/CP-29-·-reporte-repetido-en-tramite-b21b7da5b2353b313b6032e248f682987739b0d7.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-29-UI-reportar-un-55dc4-l-repetido-queda-en-trámite-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-30 (UI): el administrador revisa el reporte en el panel web y oculta la publicación" classname="ui/fase2.spec.js" time="5.328">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/fase2-CP-30-UI-el-administ-a28b1-web-y-oculta-la-publicación-ui/attachments/CP-30-·-panel-de-administracion-dd5927e65adabab6ce6cc47aaf2b6684afa4aade.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-30-UI-el-administ-a28b1-web-y-oculta-la-publicación-ui/attachments/CP-30-·-reporte-con-contenido-e-historial-8ccbaff068a496b1ddcf424a88b3e0d6331a16a7.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-30-UI-el-administ-a28b1-web-y-oculta-la-publicación-ui/attachments/CP-30-·-decision-registrada-54d2e4284d73e182fb0435ab61b6063d68662d53.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-30-UI-el-administ-a28b1-web-y-oculta-la-publicación-ui/attachments/CP-30-·-bitacora-de-auditoria-7c97c244c2f4ecc436dca2e628f970c51f646f8f.png]]
+
+[[ATTACHMENT|evidencias/fase2-CP-30-UI-el-administ-a28b1-web-y-oculta-la-publicación-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="ui/pedidos_comunicacion.spec.js" timestamp="2026-11-16T04:30:18.660Z" hostname="ui" tests="5" failures="0" skipped="0" time="17.191" errors="0">
+<testcase name="CP-09 (UI): el mensaje llega en tiempo real al otro teléfono con su hora" classname="ui/pedidos_comunicacion.spec.js" time="4.608">
+<properties>
+<property name="medición" value="Mensaje visible en el otro teléfono: 86 ms · 84 ms · 73 ms (p95 86 ms)">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/pedidos_comunicacion-CP-09-0b4f5-l-otro-teléfono-con-su-hora-ui/test-finished-1.png]]
+
+[[ATTACHMENT|evidencias/pedidos_comunicacion-CP-09-0b4f5-l-otro-teléfono-con-su-hora-ui/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-10 (UI): calificar un pedido entregado; la segunda calificación no se guarda" classname="ui/pedidos_comunicacion.spec.js" time="4.139">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/pedidos_comunicacion-CP-10-d07d6-a-calificación-no-se-guarda-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-11 (UI): el panel muestra cifras iguales a la suma de los pedidos entregados" classname="ui/pedidos_comunicacion.spec.js" time="2.495">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/pedidos_comunicacion-CP-11-0fc1d-a-de-los-pedidos-entregados-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-14 (UI): «Mis pedidos» muestra los activos con su estado vigente y se actualiza en vivo" classname="ui/pedidos_comunicacion.spec.js" time="1.858">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/pedidos_comunicacion-CP-14-2a536-ente-y-se-actualiza-en-vivo-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CP-17 (UI): editar sin conexión mientras cambia la versión → «Con error» y prevalece el servidor" classname="ui/pedidos_comunicacion.spec.js" time="4.091">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|evidencias/pedidos_comunicacion-CP-17-942d9-or»-y-prevalece-el-servidor-ui/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>
