@@ -6,6 +6,7 @@ const { pool } = require('../../src/db/pool');
 const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
+const { vaciarUsuarios } = require('./limpiar');
 
 const app = createApp({ pool });
 
@@ -23,7 +24,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
 });
 
 afterAll(async () => {

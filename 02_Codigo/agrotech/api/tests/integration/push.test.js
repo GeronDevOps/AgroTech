@@ -8,6 +8,7 @@ const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
 const { ErrorTemporalFcm } = require('../../src/modules/notificaciones/fcm');
 const { crearAyudas, eventoWompi } = require('./ayudas');
+const { vaciarUsuarios } = require('./limpiar');
 
 /** FCM simulado: cada token responde según `comportamiento[token]` ('ok' | 'invalido' | 'temporal'). */
 const comportamiento = {};
@@ -34,7 +35,7 @@ let rosa; let andres; let papa;
 beforeAll(async () => { await migrate({ log: () => {} }); });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   await fs.rm(config.fotos.dir, { recursive: true, force: true });
   Object.keys(comportamiento).forEach((k) => delete comportamiento[k]);
   enviados.length = 0;

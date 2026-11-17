@@ -7,6 +7,7 @@ const { migrate } = require('../../../src/db/migrate');
 const config = require('../../../src/config/env');
 const { jpeg } = require('../ayudas');
 const { entornoFase2, pool } = require('./comun');
+const { vaciarUsuarios } = require('../limpiar');
 
 const e = entornoFase2();
 const { privacidadService } = e.servicios;
@@ -14,7 +15,7 @@ const coordenadas = async (id) => (await pool.query('SELECT ST_Y(coordenadas::ge
 
 beforeAll(async () => { await migrate({ log: () => {} }); });
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   e.correo.enviados.length = 0;
 });
 afterAll(async () => {

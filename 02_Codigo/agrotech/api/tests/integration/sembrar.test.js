@@ -6,13 +6,14 @@ const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
 const { sembrar, uuidDe, PRODUCTOS, PEDIDOS } = require('../../scripts/sembrar');
+const { vaciarUsuarios } = require('./limpiar');
 
 let servidor; let api;
 const contar = async (tabla) => (await pool.query(`SELECT count(*)::int AS n FROM ${tabla}`)).rows[0].n;
 
 beforeAll(async () => {
   await migrate({ log: () => {} });
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   await fs.rm(config.fotos.dir, { recursive: true, force: true });
   servidor = createApp({ pool }).listen(0);
   api = `http://127.0.0.1:${servidor.address().port}`;

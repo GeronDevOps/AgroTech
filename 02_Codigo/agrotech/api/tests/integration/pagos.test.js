@@ -8,6 +8,7 @@ const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
 const { crearAyudas, eventoWompi } = require('./ayudas');
+const { vaciarUsuarios } = require('./limpiar');
 
 const app = createApp({ pool });
 const { cuenta, producto, confirmar, get, patch, post } = crearAyudas(app);
@@ -19,7 +20,7 @@ let rosa; let andres; let papa; let pedido;
 beforeAll(async () => { await migrate({ log: () => {} }); });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   await fs.rm(config.fotos.dir, { recursive: true, force: true });
   rosa = await cuenta('Rosa', 'PRODUCTOR', '3105551234');
   andres = await cuenta('Andres', 'CONSUMIDOR', '3205550000', 'Cúcuta');

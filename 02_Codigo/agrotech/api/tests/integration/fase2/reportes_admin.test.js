@@ -5,6 +5,7 @@ const fs = require('node:fs/promises');
 const { migrate } = require('../../../src/db/migrate');
 const config = require('../../../src/config/env');
 const { entornoFase2, pool } = require('./comun');
+const { vaciarUsuarios } = require('../limpiar');
 
 const e = entornoFase2();
 let rosa; let andres; let maria; let admin; let papa;
@@ -12,7 +13,7 @@ const reportar = (token, body) => e.post(token, '/reportes', body);
 
 beforeAll(async () => { await migrate({ log: () => {} }); });
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   e.correo.enviados.length = 0;
   rosa = await e.cuenta('Rosa', 'PRODUCTOR', '3105551234');
   andres = await e.cuenta('Andres', 'CONSUMIDOR', '3205550000', 'Cúcuta');

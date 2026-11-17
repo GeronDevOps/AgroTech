@@ -5,6 +5,7 @@ const fs = require('node:fs/promises');
 const { migrate } = require('../../../src/db/migrate');
 const config = require('../../../src/config/env');
 const { entornoFase2, pool } = require('./comun');
+const { vaciarUsuarios } = require('../limpiar');
 
 const e = entornoFase2();
 let rosa; let luis; let andres;
@@ -13,7 +14,7 @@ const nombres = (r) => r.productos.map((p) => p.nombre);
 
 beforeAll(async () => { await migrate({ log: () => {} }); });
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   rosa = await e.cuenta('Rosa', 'PRODUCTOR', '3105551234', 'Pamplona');
   luis = await e.cuenta('Luis', 'PRODUCTOR', '3115551234', 'Ocaña');
   andres = await e.cuenta('Andres', 'CONSUMIDOR', '3205550000', 'Pamplonita');

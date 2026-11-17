@@ -7,6 +7,7 @@ const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
 const { createAlmacenFotosS3 } = require('../../src/almacenamiento/fotos-s3');
 const { crearAyudas, jpeg } = require('./ayudas');
+const { vaciarUsuarios } = require('./limpiar');
 
 /** Bucket en memoria con el mismo contrato que S3 (send(comando)). Puede fallar a pedido. */
 function bucketEnMemoria() {
@@ -40,7 +41,7 @@ let rosa; let andres;
 beforeAll(async () => { await migrate({ log: () => {} }); });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   bucket.objetos.clear();
   bucket.puts = 0;
   bucket.fallarEn = null;
