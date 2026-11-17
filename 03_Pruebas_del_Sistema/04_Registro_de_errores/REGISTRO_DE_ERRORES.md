@@ -7,7 +7,7 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 |---|---|
 | Versión del sistema | 1.1.1 (corrige los errores ERR-01 a ERR-05) |
 | Fecha de corte | 16 de noviembre de 2026 |
-| Estado global | ERR-01 (reportado por el usuario) con 6 causas, y 11 errores más: 16 corregidos y verificados · 1 mitigado (ERR-01f, depende del equipo del usuario) |
+| Estado global | ERR-01 (reportado por el usuario) con 6 causas, y 12 errores más: 17 corregidos y verificados · 1 mitigado (ERR-01f, depende del equipo del usuario) |
 | Severidad | **Alta**: impide usar la app o una función principal · **Media**: afecta una función o la calidad sin bloquear · **Baja**: cosmético, de entorno de pruebas o de herramientas |
 
 ## 1. Resumen
@@ -32,6 +32,7 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | ERR-10 | 15-nov | Capturas de las pruebas de sistema | Pantalla «Mi cuenta»: los botones se estiran a toda la altura | Media | Corregido |
 | ERR-11 | 16-nov | Banco de pruebas (repetición 3×) | Fallo intermitente en BP-013 (299/300): «Unexpected end of JSON input» | Baja | Corregido |
 | ERR-12 | 16-nov | Banco de pruebas | La prueba de la semilla de datos excede 5 s con bcrypt de costo 12 | Baja | Corregido |
+| ERR-13 | 16-nov | GitHub Actions (CI en `main` tras el PR #1) | Falla intermitente: `deadlock detected` en el `TRUNCATE` previo a una prueba de WebSocket (243/244) | Baja | Corregido |
 
 ## 2. Detalle del error reportado: ERR-01 «No hay conexión con el servidor»
 
@@ -96,7 +97,7 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | ERR-04 | En SDK 58 `renderRouter` de `expo-router/testing-library` devuelve una promesa | `await renderRouter(...)` en las 7 suites | 97/97 |
 | ERR-05 | El plugin `import/namespace` no reconoce el `export *` de `expo-notifications` 58 (en ejecución sí existe) | Excepción documentada en `push.js` | `expo lint` sin errores |
 
-## 4. Errores de la Fase 2 y del banco de pruebas
+## 4. Errores de la Fase 2, del banco de pruebas y de la integración continua
 
 | ID | Causa raíz | Solución | Verificación |
 |---|---|---|---|
@@ -107,6 +108,7 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | ERR-10 | Los mosaicos de «Mi cuenta» usaban `flex: 1` en una columna | Rejilla de 2 columnas | Capturas y pruebas de interfaz de la Fase 2 |
 | ERR-11 | El driver de correo «archivo» escribía el JSON directamente en el archivo final | Escritura atómica (temporal + renombrar) y lector tolerante | Banco repetido 3 veces: 300/300 |
 | ERR-12 | La prueba de la semilla hace dos siembras completas con bcrypt de costo 12 | Límite de 20 s | 244/244 |
+| ERR-13 | Tareas en segundo plano de la prueba anterior (avisos, cierre de WebSocket) seguían escribiendo cuando la siguiente vaciaba las tablas; PostgreSQL abortó el `TRUNCATE` por interbloqueo. En el PR pasó y en `main` falló: intermitente | `vaciarUsuarios()` (tests/integration/limpiar.js) reintenta el `TRUNCATE` ante 40P01; usado por las 17 suites de integración | 244/244 dos veces seguidas en local; CI en verde |
 
 ## 5. Verificación de la versión 1.1.1
 

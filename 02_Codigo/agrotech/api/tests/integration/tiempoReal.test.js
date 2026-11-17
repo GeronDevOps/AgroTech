@@ -10,6 +10,7 @@ const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
 const { createServidorTiempoReal, CIERRE } = require('../../src/tiempo-real/servidorWs');
 const { crearAyudas } = require('./ayudas');
+const { vaciarUsuarios } = require('./limpiar');
 
 const app = createApp({ pool });
 const { cuenta, producto, confirmar, patch, post, hasta } = crearAyudas(app);
@@ -47,7 +48,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   await fs.rm(config.fotos.dir, { recursive: true, force: true });
   rosa = await cuenta('Rosa', 'PRODUCTOR', '3105551234');
   andres = await cuenta('Andres', 'CONSUMIDOR', '3205550000', 'Cúcuta');

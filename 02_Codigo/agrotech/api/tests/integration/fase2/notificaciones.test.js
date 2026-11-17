@@ -5,6 +5,7 @@ const fs = require('node:fs/promises');
 const { migrate } = require('../../../src/db/migrate');
 const config = require('../../../src/config/env');
 const { entornoFase2, pool } = require('./comun');
+const { vaciarUsuarios } = require('../limpiar');
 
 /** FCM simulado (como en push.test.js). */
 const enviados = [];
@@ -16,7 +17,7 @@ let rosa; let andres; let papa;
 
 beforeAll(async () => { await migrate({ log: () => {} }); });
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   enviados.length = 0;
   rosa = await conPush.cuenta('Rosa', 'PRODUCTOR', '3105551234');
   andres = await conPush.cuenta('Andres', 'CONSUMIDOR', '3205550000', 'Cúcuta');

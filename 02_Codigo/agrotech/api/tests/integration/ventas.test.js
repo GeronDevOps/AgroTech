@@ -7,6 +7,7 @@ const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
 const { crearAyudas } = require('./ayudas');
+const { vaciarUsuarios } = require('./limpiar');
 
 // "Hoy" fijo: 15 de octubre de 2026, 10:00 en Colombia.
 const app = createApp({ pool, ventasAhora: () => Date.parse('2026-10-15T15:00:00Z') });
@@ -20,7 +21,7 @@ let rosa; let luis; let marta; let andres; let maria;
 
 beforeAll(async () => {
   await migrate({ log: () => {} });
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   await fs.rm(config.fotos.dir, { recursive: true, force: true });
   rosa = await cuenta('Rosa', 'PRODUCTOR', '3105551234');
   luis = await cuenta('Luis', 'PRODUCTOR', '3105559999', 'Ocaña');

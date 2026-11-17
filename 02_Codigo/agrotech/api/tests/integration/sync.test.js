@@ -8,6 +8,7 @@ const { migrate } = require('../../src/db/migrate');
 const { createApp } = require('../../src/app');
 const config = require('../../src/config/env');
 const { crearAyudas } = require('./ayudas');
+const { vaciarUsuarios } = require('./limpiar');
 
 const app = createApp({ pool });
 const { cuenta, producto, confirmar, get, patch, post } = crearAyudas(app);
@@ -35,7 +36,7 @@ let rosa; let luis; let andres; let papa; let cebolla;
 beforeAll(async () => { await migrate({ log: () => {} }); });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   await fs.rm(config.fotos.dir, { recursive: true, force: true });
   rosa = await cuenta('Rosa', 'PRODUCTOR', '3105551234');
   luis = await cuenta('Luis', 'PRODUCTOR', '3105559999', 'Ocaña');

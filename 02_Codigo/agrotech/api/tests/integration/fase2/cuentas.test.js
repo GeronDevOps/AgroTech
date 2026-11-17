@@ -3,13 +3,14 @@
 const { migrate } = require('../../../src/db/migrate');
 const config = require('../../../src/config/env');
 const { entornoFase2, pool } = require('./comun');
+const { vaciarUsuarios } = require('../limpiar');
 
 const e = entornoFase2();
 const codigoDelCorreo = () => /: (\d{6})$/.exec(e.correo.enviados[e.correo.enviados.length - 1].asunto)[1];
 
 beforeAll(async () => { await migrate({ log: () => {} }); });
 beforeEach(async () => {
-  await pool.query('TRUNCATE usuario RESTART IDENTITY CASCADE');
+  await vaciarUsuarios(pool);
   e.correo.enviados.length = 0;
 });
 afterAll(async () => { await pool.end(); });
