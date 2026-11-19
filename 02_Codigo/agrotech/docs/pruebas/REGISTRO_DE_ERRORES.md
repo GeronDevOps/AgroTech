@@ -6,8 +6,8 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | Campo | Valor |
 |---|---|
 | Versión del sistema | 1.1.1 (corrige los errores ERR-01 a ERR-05) |
-| Fecha de corte | 16 de noviembre de 2026 |
-| Estado global | ERR-01 (reportado por el usuario) con 6 causas, y 12 errores más: 17 corregidos y verificados · 1 mitigado (ERR-01f, depende del equipo del usuario) |
+| Fecha de corte | 18 de noviembre de 2026 |
+| Estado global | ERR-01 (reportado por el usuario) con 6 causas, y 16 errores más: 21 corregidos y verificados · 1 mitigado (ERR-01f, depende del equipo del usuario) |
 | Severidad | **Alta**: impide usar la app o una función principal · **Media**: afecta una función o la calidad sin bloquear · **Baja**: cosmético, de entorno de pruebas o de herramientas |
 
 ## 1. Resumen
@@ -33,6 +33,10 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | ERR-11 | 16-nov | Banco de pruebas (repetición 3×) | Fallo intermitente en BP-013 (299/300): «Unexpected end of JSON input» | Baja | Corregido |
 | ERR-12 | 16-nov | Banco de pruebas | La prueba de la semilla de datos excede 5 s con bcrypt de costo 12 | Baja | Corregido |
 | ERR-13 | 16-nov | GitHub Actions (CI en `main` tras el PR #1) | Falla intermitente: `deadlock detected` en el `TRUNCATE` previo a una prueba de WebSocket (243/244) | Baja | Corregido |
+| ERR-14 | 18-nov | Revisión de código final | CP-02 falla intermitente: `Expected <= 15, Received 15.00005` (243/244) | Baja | Corregido |
+| ERR-15 | 18-nov | Revisión de código final | 8 pruebas de `sincronizacion.test.js` fallan en cascada: `Exceeded timeout of 5000 ms` (89/97) | Baja | Corregido |
+| ERR-16 | 18-nov | Revisión de código final | `GET /ventas?periodo=constructor` pasa la validación (propiedad heredada de `Object.prototype`) | Baja | Corregido |
+| ERR-17 | 18-nov | Revisión de código final | La API ofrece `PUT /perfil/foto` (CU-09 paso 2) pero la app no permite cambiar la foto de perfil | Media | Corregido |
 
 ## 2. Detalle del error reportado: ERR-01 «No hay conexión con el servidor»
 
@@ -109,6 +113,15 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | ERR-11 | El driver de correo «archivo» escribía el JSON directamente en el archivo final | Escritura atómica (temporal + renombrar) y lector tolerante | Banco repetido 3 veces: 300/300 |
 | ERR-12 | La prueba de la semilla hace dos siembras completas con bcrypt de costo 12 | Límite de 20 s | 244/244 |
 | ERR-13 | Tareas en segundo plano de la prueba anterior (avisos, cierre de WebSocket) seguían escribiendo cuando la siguiente vaciaba las tablas; PostgreSQL abortó el `TRUNCATE` por interbloqueo. En el PR pasó y en `main` falló: intermitente | `vaciarUsuarios()` (tests/integration/limpiar.js) reintenta el `TRUNCATE` ante 40P01; usado por las 17 suites de integración | 244/244 dos veces seguidas en local; CI en verde |
+
+## 4b. Errores de la revisión de código final (18-nov)
+
+| ID | Causa raíz | Solución | Verificación |
+|---|---|---|---|
+| ERR-14 | `bloqueado_hasta` lo calcula PostgreSQL (`now()`) y la prueba lo compara con `Date.now()` de Node: un desfase de milisegundos entre el reloj del contenedor y el del equipo supera el límite exacto de 15 min | Tolerancia de 5 s en `api/tests/integration/auth.test.js` (las pruebas e2e ya usaban 15,1 min) | 244/244 |
+| ERR-15 | La primera suite que corre paga la compilación en frío de Babel sobre la carpeta de OneDrive; el primer test supera 5 s y deja el router a medio montar, lo que hace fallar los 7 siguientes | `testTimeout: 30000` en la configuración de Jest de `app/package.json` | 98/98 |
+| ERR-16 | `PERIODOS[codigo]` acepta claves heredadas (`constructor`, `toString`) | `Object.hasOwn` y tipo `string` en `api/src/modules/ventas/ventas.service.js` | Prueba «400 con … periodo desconocido» ampliada |
+| ERR-17 | Inconsistencia backend ↔ app: el endpoint existía y estaba probado, pero no había llamada ni control en la app | `api.cambiarFotoPerfil` (`app/src/api/cliente.js`) y sección de foto en `PantallaPerfil.js` (comprime con `obtenerFoto`; requiere señal) | Nueva prueba en `app/__tests__/fase2.test.js` |
 
 ## 5. Verificación de la versión 1.1.1
 

@@ -99,8 +99,10 @@ describe('POST /api/v1/auth/sesion (CU-21)', () => {
     expect(quinto.status).toBe(423);
     expect(quinto.body.error.codigo).toBe('CUENTA_BLOQUEADA');
     const minutos = (new Date(quinto.body.error.detalles.bloqueadoHasta) - Date.now()) / 60000;
+    // bloqueado_hasta lo calcula PostgreSQL (now()) y aquí se compara con el reloj de Node:
+    // se tolera un desfase de hasta 5 s entre ambos relojes (contenedor de Docker / WSL).
     expect(minutos).toBeGreaterThan(14);
-    expect(minutos).toBeLessThanOrEqual(15);
+    expect(minutos).toBeLessThanOrEqual(15 + 5 / 60);
 
     expect((await iniciar('rosa@correo.co', 'cosecha2026')).status).toBe(423);
 

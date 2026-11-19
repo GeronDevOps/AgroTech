@@ -116,5 +116,9 @@ describe('CU-07 · Panel de ventas (AGRO-13)', () => {
     expect((await get(rosa.token, '/ventas?desde=2026-13-01&hasta=2026-10-01')).status).toBe(400);
     expect((await get(rosa.token, '/ventas?desde=2026-10-01')).status).toBe(400);
     expect((await get(rosa.token, '/ventas?periodo=siglo')).status).toBe(400);
+    // Propiedades heredadas de Object.prototype no son periodos.
+    expect((await get(rosa.token, '/ventas?periodo=constructor')).status).toBe(400);
+    expect((await get(rosa.token, '/ventas?periodo=toString')).status).toBe(400);
+    expect((await get(rosa.token, '/ventas?periodo=mes&periodo=anio')).status).toBe(400);
   });
 });

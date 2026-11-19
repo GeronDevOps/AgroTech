@@ -42,7 +42,8 @@ function resolverPeriodo(query = {}, ahora = Date.now()) {
     return { codigo: 'personalizado', nombre: 'Personalizado', desde, hasta, correccion: correcciones.length ? `Se ajustó el rango: ${correcciones.join('; ')}.` : null };
   }
   const codigo = query.periodo || 'mes';
-  if (!PERIODOS[codigo]) throw errores.datosInvalidos(`Periodo inválido. Use: ${Object.keys(PERIODOS).join(', ')}.`);
+  // Object.hasOwn: "constructor", "toString"… existen en el prototipo y no son periodos válidos.
+  if (typeof codigo !== 'string' || !Object.hasOwn(PERIODOS, codigo)) throw errores.datosInvalidos(`Periodo inválido. Use: ${Object.keys(PERIODOS).join(', ')}.`);
   let desde = `${anio}-${mes}-01`;
   let hasta = hoy;
   if (codigo === 'semana') desde = sumarDias(hoy, -6);

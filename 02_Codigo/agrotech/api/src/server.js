@@ -1,8 +1,10 @@
 'use strict';
 
 const http = require('node:http');
+const os = require('node:os');
 const config = require('./config/env');
 const { pool } = require('./db/pool');
+const { migrate, pendientes } = require('./db/migrate');
 const { createApp } = require('./app');
 const { createServidorTiempoReal } = require('./tiempo-real/servidorWs');
 
@@ -11,9 +13,6 @@ const app = createApp({ pool });
 const server = http.createServer(app);
 const { eventos, tokens } = app.locals.servicios;
 const tiempoReal = createServidorTiempoReal({ server, pool, tokens, eventos });
-
-const os = require('node:os');
-const { migrate, pendientes } = require('./db/migrate');
 
 /** Direcciones IPv4 de la red local: las que debe usar el teléfono (localhost solo sirve en el mismo computador). */
 function direccionesLan() {

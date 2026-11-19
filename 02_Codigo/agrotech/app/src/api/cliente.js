@@ -170,4 +170,10 @@ export const api = {
     formulario.append('miniatura', ...(await archivo(miniatura.uri, 'miniatura.jpg')));
     return solicitar('/productos', { metodo: 'POST', cuerpo: formulario, tiempoEspera: TIEMPO_SUBIDA_MS });
   },
+  /** CU-09 paso 2: foto de perfil (JPEG ≤ 300 KB, ya comprimida en el teléfono). PUT /perfil/foto. */
+  async cambiarFotoPerfil(uri) {
+    const formulario = new FormData();
+    formulario.append('foto', ...(await archivo(uri, 'perfil.jpg')));
+    return solicitar('/perfil/foto', { metodo: 'PUT', cuerpo: formulario, tiempoEspera: TIEMPO_SUBIDA_MS });
+  },
 };

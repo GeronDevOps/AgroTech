@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CampoTexto } from './CampoTexto';
 import { BotonGrande } from './BotonGrande';
 import { Aviso } from './Aviso';
@@ -9,6 +9,7 @@ import { useSesion } from '../sesion/SesionContext';
 import { useConexion } from '../hooks/useConexion';
 import { useSincronizacion } from '../sync/SincronizacionContext';
 import { ubicacionDelTelefono } from '../ubicacion/ubicacion';
+import { ErrorFoto, obtenerFoto } from '../fotos/prepararFoto';
 import { limpiarTelefono, mensajeDeError } from '../validacion/cuenta';
 import { colores, espacio, texto } from '../tema/tema';
 
@@ -17,6 +18,7 @@ const CAMPOS = ['nombres', 'apellidos', 'telefono', 'correo', 'municipio', 'vere
 /**
  * CU-09 · Mi perfil (RF-09). Edita contacto y ubicación; el rol no se puede cambiar (A1).
  * Un celular o correo de otra cuenta se marca en el campo (A2). Sin señal, el cambio queda en el teléfono (A3).
+ * Paso 2: foto de perfil (PUT /perfil/foto), comprimida en el teléfono; necesita señal.
  */
 export function PantallaPerfil() {
   const { usuario, actualizarUsuario } = useSesion();
@@ -25,6 +27,7 @@ export function PantallaPerfil() {
   const [original, setOriginal] = useState(null);
   const [datos, setDatos] = useState(null);
   const [ubicacion, setUbicacion] = useState(null);
+  const [fotoUrl, setFotoUrl] = useState(null);
   const [errores, setErrores] = useState({});
   const [aviso, setAviso] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -34,6 +37,7 @@ export function PantallaPerfil() {
     setOriginal(d);
     setDatos(d);
     setUbicacion(p.ubicacion || null);
+    setFotoUrl(p.fotoUrl || null);
   }, []);
 
   useEffect(() => {
@@ -61,6 +65,25 @@ export function PantallaPerfil() {
       return;
     }
     await guardar({ ubicacion: u });
+  }
+
+  async function cambiarFoto() {
+    setAviso(null);
+    setErrores({});
+    try {
+      const elegida = await obtenerFoto('galeria');
+      if (!elegida) return; // canceló
+      setEnviando(true);
+      const r = await api.cambiarFotoPerfil(elegida.foto.uri);
+      setFotoUrl(r.perfil.fotoUrl || null);
+      setAviso({ tipo: 'info', mensaje: '✓ Foto de perfil actualizada.' });
+    } catch (err) {
+      if (err instanceof ErrorFoto) setAviso({ tipo: 'error', mensaje: err.message });
+      else if (err.detalles && err.detalles.campos) setErrores(err.detalles.campos);
+      else setAviso({ tipo: err.codigo === 'SIN_CONEXION' ? 'sinSenal' : 'error', mensaje: mensajeDeError(err) });
+    } finally {
+      setEnviando(false);
+    }
   }
 
   async function guardar(extra = {}) {
@@ -100,6 +123,13 @@ export function PantallaPerfil() {
           <Text style={styles.ayuda}>El tipo de cuenta lo cambia la asociación.</Text>
         </View>
         {aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} testID="aviso-perfil" /> : null}
+        <View style={styles.fotoCaja}>
+          {fotoUrl
+            ? <Image source={{ uri: fotoUrl }} style={styles.foto} accessibilityLabel="Foto de perfil" testID="foto-perfil" />
+            : <View style={[styles.foto, styles.sinFoto]}><Text style={styles.sinFotoTexto}>👤</Text></View>}
+          {errores.foto ? <Text style={styles.error}>{errores.foto}</Text> : null}
+          <BotonGrande titulo={fotoUrl ? 'Cambiar foto de perfil' : 'Poner foto de perfil'} variante="secundario" onPress={cambiarFoto} deshabilitado={enviando || !enLinea} />
+        </View>
         <CampoTexto etiqueta="Nombres" value={datos.nombres} onChangeText={poner('nombres')} error={errores.nombres} />
         <CampoTexto etiqueta="Apellidos" value={datos.apellidos} onChangeText={poner('apellidos')} error={errores.apellidos} />
         <CampoTexto etiqueta="Celular" value={datos.telefono} onChangeText={poner('telefono')} error={errores.telefono} keyboardType="phone-pad" />
@@ -133,4 +163,8 @@ const styles = StyleSheet.create({
   subtitulo: { fontSize: texto.base, fontWeight: '800', color: colores.texto },
   ayuda: { fontSize: texto.pequeno, color: colores.textoSecundario, marginVertical: espacio.xs },
   error: { fontSize: texto.pequeno, color: colores.error },
+  fotoCaja: { alignItems: 'center', marginBottom: espacio.m },
+  foto: { width: 96, height: 96, borderRadius: 48, marginBottom: espacio.s },
+  sinFoto: { backgroundColor: colores.superficie, alignItems: 'center', justifyContent: 'center' },
+  sinFotoTexto: { fontSize: 40 },
 });

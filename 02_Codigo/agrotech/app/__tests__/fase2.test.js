@@ -113,6 +113,23 @@ describe('CU-09 · Mi perfil', () => {
     await pulsar('Guardar cambios');
     expect(await screen.findByTestId('aviso-perfil')).toHaveTextContent(/Guardado en el teléfono/);
   });
+
+  test('paso 2: la foto de perfil se comprime y se envía a PUT /perfil/foto; sin señal el botón queda deshabilitado', async () => {
+    const fotoUrl = 'http://api/fotos/perfiles/u-andres-1.jpg';
+    const { llamadas } = await abrirComo(usuarioAndres, '/consumidor/perfil', {
+      'GET /perfil': () => [200, { perfil }],
+      'PUT /perfil/foto': () => [200, { perfil: { ...perfil, fotoUrl } }],
+    });
+    await pulsar('Poner foto de perfil');
+    expect(await screen.findByTestId('aviso-perfil')).toHaveTextContent(/Foto de perfil actualizada/);
+    expect(screen.getByTestId('foto-perfil').props.source).toEqual({ uri: fotoUrl });
+    const envio = llamadas.filter((l) => l.clave === 'PUT /perfil/foto');
+    expect(envio).toHaveLength(1);
+    expect(envio[0].cuerpo.foto).toBeTruthy();
+
+    await act(async () => { global.__red.desconectar(); });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Cambiar foto de perfil' }).props.accessibilityState.disabled).toBe(true));
+  });
 });
 
 describe('CU-11 / CU-12 · Buscar, ordenar y «Cerca de mí»', () => {
