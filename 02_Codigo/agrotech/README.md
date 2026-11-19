@@ -10,10 +10,31 @@ Proyecto de Ingeniería de Software II · Universidad de Pamplona.
 | `/app` | App móvil React Native (Expo) | J. Durán |
 | `/api` | API REST y servidor WebSocket en Node.js | G. Vergara |
 | `/db/migrations` | Migraciones SQL versionadas de PostgreSQL + PostGIS | G. Vergara |
-| `/e2e` | Pruebas de sistema automatizadas CP-01…CP-19 (Playwright) | J. Durán |
+| `/e2e` | Pruebas de sistema CP-01…CP-30 y banco BP-001…BP-103 (Playwright) | J. Durán |
+| `/herramientas/windows` | Arranque del entorno en Windows y regla del firewall | J. Carrillo |
 | `/infra` | Infraestructura de AWS (CloudFormation) y scripts del servidor | G. Vergara |
 | `/docs` | Convenciones, decisiones técnicas, despliegue y kit del piloto | J. Carrillo |
 | `/.github` | Integración continua, pruebas de sistema, despliegue y plantilla de PR | G. Vergara |
+
+## Documentación y entregables
+
+Rutas relativas a la raíz del repositorio.
+
+| Tema | Documento |
+|---|---|
+| Guía de arranque | [Puesta en marcha](#puesta-en-marcha) en este README · `herramientas/windows/iniciar-agrotech.cmd` y `permitir-firewall.cmd` · [`docs/despliegue/RUNBOOK.md`](docs/despliegue/RUNBOOK.md) (producción) |
+| Código y API | `api/`, `app/`, `db/migrations/`, `e2e/` · [`docs/API.md`](docs/API.md) · [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) · [`CHANGELOG.md`](CHANGELOG.md) |
+| Revisión de código | [`RESUMEN_REVISION_CODIGO.md`](RESUMEN_REVISION_CODIGO.md) |
+| Auditoría externa de QA | [`AUDITORIA_FINAL_GEMINI.md`](AUDITORIA_FINAL_GEMINI.md) (hallazgos HALL-01…06 y su estado en §7) |
+| Plan y diseño de pruebas | [`docs/pruebas/PLAN_Y_DISENO_PRUEBAS.md`](docs/pruebas/PLAN_Y_DISENO_PRUEBAS.md) (CP-01…CP-32) |
+| Informe de ejecución de pruebas | [`docs/pruebas/INFORME_EJECUCION_PRUEBAS.md`](docs/pruebas/INFORME_EJECUCION_PRUEBAS.md) · evidencias en [`docs/pruebas/evidencias/`](docs/pruebas/evidencias/) |
+| Pruebas de sistema y banco | [`docs/pruebas/INFORME_PRUEBAS_SISTEMA.md`](docs/pruebas/INFORME_PRUEBAS_SISTEMA.md) · [`docs/pruebas/BANCO_PRUEBAS.md`](docs/pruebas/BANCO_PRUEBAS.md) |
+| Registro de errores | [`docs/pruebas/REGISTRO_DE_ERRORES.md`](docs/pruebas/REGISTRO_DE_ERRORES.md) (ERR-01…ERR-17) |
+| Gestión, costos y valor ganado | [`docs/GESTION_PROJECTLIBRE_COSTOS.md`](docs/GESTION_PROJECTLIBRE_COSTOS.md) |
+| Cronograma ProjectLibre | [`docs/gestion/proyecto_agrotech_actualizado.xml`](docs/gestion/proyecto_agrotech_actualizado.xml) (v2.3, con costos y avance; en ProjectLibre: *Archivo → Abrir*) · línea base [`docs/gestion/AgroTech_Cronograma.xml`](docs/gestion/AgroTech_Cronograma.xml) (v2.2) · [`docs/gestion/gantt.png`](docs/gestion/gantt.png) |
+| Presupuesto y cronograma (copia del paquete de gestión) | [`docs/gestion/PRESUPUESTO_Y_CRONOGRAMA_AGROTECH.md`](docs/gestion/PRESUPUESTO_Y_CRONOGRAMA_AGROTECH.md) |
+| Plan de desarrollo y decisiones | [`docs/PLAN_DESARROLLO.md`](docs/PLAN_DESARROLLO.md) · [`docs/decisiones/`](docs/decisiones/) |
+| Piloto con la asociación | [`docs/piloto/`](docs/piloto/) (protocolo, SUS, validación UCD) |
 
 ## Arquitectura (Tier-3)
 

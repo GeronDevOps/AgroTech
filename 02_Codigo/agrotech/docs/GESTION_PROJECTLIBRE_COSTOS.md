@@ -6,8 +6,8 @@
 | Proyecto | Desarrollo de una aplicación móvil para la comercialización directa de productos agrícolas en Norte de Santander · Ingeniería de Software II (167415), Universidad de Pamplona |
 | Equipo | Julio Carrillo (Project Manager / Software Architect) · Julio Durán (Frontend Developer / QA Tester) · Geron Vergara (Backend Developer / DevOps) |
 | Periodo | 01/09/2026 – 03/12/2026 (cierre planificado) · fecha límite 10/12/2026 |
-| Cronograma fuente | `01_Documentacion/03_Gestion/AgroTech_Cronograma.xml` (v2.2, formato MSPDI que ProjectLibre abre e importa; no se modificó) |
-| Cronograma actualizado | `01_Documentacion/03_Gestion/proyecto_agrotech_actualizado.xml` (v2.3, con costos y avance al 18/11) |
+| Cronograma fuente | `docs/gestion/AgroTech_Cronograma.xml` (v2.2, formato MSPDI que ProjectLibre abre e importa; no se modificó) |
+| Cronograma actualizado | `docs/gestion/proyecto_agrotech_actualizado.xml` (v2.3, con costos y avance al 18/11) |
 | Documentos relacionados | Entrega 4 (Plan de gestión, capítulos 3–5) · `docs/PLAN_DESARROLLO.md` · `docs/pruebas/PLAN_Y_DISENO_PRUEBAS.md` · `docs/pruebas/INFORME_EJECUCION_PRUEBAS.md` · `RESUMEN_REVISION_CODIGO.md` · `docs/despliegue/RUNBOOK.md` §8 |
 ## 1. Fuente del cronograma y hallazgos de la inspección
 
