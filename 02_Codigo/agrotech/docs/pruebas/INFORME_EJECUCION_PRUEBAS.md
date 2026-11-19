@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 |---|---|
-| Versión del documento | 1.0 · 18 de noviembre de 2026 (fecha de corte) |
-| Versión probada | AgroTech 1.1.1 · commit `2d85ae6` («refactor: revisión integral, corrección ERR-14 a ERR-17 y puesta a punto pre-entrega») |
+| Versión del documento | 1.1 · 18 de noviembre de 2026 (fecha de corte; 1.1 agrega la ejecución E2E de la EDT 6.9) |
+| Versión probada | AgroTech 1.1.1 · Jest sobre el commit `2d85ae6` («refactor: revisión integral, corrección ERR-14 a ERR-17 y puesta a punto pre-entrega») · Jest de las suites modificadas y Playwright E2E sobre `56c7134` (`2d85ae6` + cierre de HALL-02 a HALL-06) |
 | Plan de referencia | [PLAN_Y_DISENO_PRUEBAS.md](PLAN_Y_DISENO_PRUEBAS.md) |
-| Actividades del cronograma | 6.1 Pruebas del sistema y de aceptación (67 %) · 6.7 Revisión integral (100 %) · 6.8 Plan, informe y presupuesto (50 %) · 6.9 Ejecución E2E (pendiente, 20/11) |
-| Evidencias | [`evidencias/`](evidencias/) (salidas de Jest y cobertura del 18/11) · [INFORME_PRUEBAS_SISTEMA.md](INFORME_PRUEBAS_SISTEMA.md) · [BANCO_PRUEBAS.md](BANCO_PRUEBAS.md) · `e2e/resultados/` e `e2e/informe-html/` (se generan al ejecutar Playwright) |
+| Actividades del cronograma | 6.1 Pruebas del sistema y de aceptación (67 %) · 6.7 Revisión integral (100 %) · 6.8 Plan, informe y presupuesto (50 %) · 6.9 Ejecución E2E (ejecutada el 18/11, adelantada respecto al 20/11) |
+| Evidencias | [`evidencias/`](evidencias/) (salidas de Jest, cobertura y Playwright del 18/11) · [INFORME_PRUEBAS_SISTEMA.md](INFORME_PRUEBAS_SISTEMA.md) · [BANCO_PRUEBAS.md](BANCO_PRUEBAS.md) · `e2e/resultados/` e `e2e/informe-html/` (se generan al ejecutar Playwright) |
 
 ## 1. Resumen ejecutivo
 
@@ -17,14 +17,15 @@
 | Lint API (`eslint`) y app (`expo lint`) | 0 errores | 0 | ✅ |
 | Cobertura API (líneas) | **95,51 %** | ≥ 90 % | ✅ |
 | Cobertura app (líneas) | **83,26 %** | ≥ 80 % | ✅ |
-| Casos de sistema CP-01…CP-30 (última ejecución, 16/11) | 28 PASA · 0 FALLA · 2 MANUAL (51/51 pruebas) | 100 % de los automatizables | ✅ |
+| Casos de sistema CP-01…CP-30 (18/11, commit `56c7134`) | 28 PASA · 0 FALLA · 2 MANUAL (51/51 pruebas) | 100 % de los automatizables | ✅ |
 | Casos nuevos CP-31 (ERR-16) y CP-32 (ERR-17) | PASA a nivel Jest | — | ✅ (E2E por automatizar) |
-| Banco BP-001…BP-100 (16/11, 3 repeticiones) | 100/100 · 300/300 | 100 % estable | ✅ |
+| Banco BP-001…BP-100 (18/11, commit `56c7134`) | 100/100 · 555 llamadas HTTP (16/11: 3 repeticiones, 300/300) | 100 % estable | ✅ |
 | Defectos abiertos de severidad Alta o Media | 0 (ERR-01f mitigado, depende del equipo) | 0 | ✅ |
 | Usabilidad CP-12 / BP-101 (SUS ≥ 68) | Pendiente: piloto 26/11–01/12 | SUS ≥ 68 | ⏳ |
-| Re-ejecución E2E sobre el commit `2d85ae6` | Pendiente (EDT 6.9, 20/11) | 100 % | ⏳ |
+| Re-ejecución E2E posterior a los cambios del 18/11 (EDT 6.9) | **51/51 sistema · 100/100 banco** · sin regresiones | 100 % | ✅ |
+| CP-32 en un teléfono con Expo Go | Pendiente (prueba manual) | PASA | ⏳ |
 
-**Estado de calidad: APTO CON CONDICIONES.** Las pruebas automáticas de la versión 1.1.1 están en verde y cumplen los criterios de cobertura. Antes de publicar la versión final (EDT 6.3, 25/11) hay que: (1) repetir las suites E2E y el banco contra el commit `2d85ae6`, porque el 18/11 cambiaron `PantallaPerfil.js` y `ventas.service.js`; (2) verificar la foto de perfil (CP-32) en un teléfono con Expo Go. Para aceptar el sistema y cerrar el proyecto falta el piloto (CP-12, CP-15, BP-101…BP-103).
+**Estado de calidad: APTO CON CONDICIONES.** Las pruebas automáticas de la versión 1.1.1 están en verde y cumplen los criterios de cobertura. La re-ejecución E2E y del banco (EDT 6.9) se hizo el 18/11 sobre `56c7134`, que incluye los cambios del 18/11 en `PantallaPerfil.js` y `ventas.service.js`: 51/51 y 100/100, sin regresiones. Antes de publicar la versión final (EDT 6.3, 25/11) queda verificar la foto de perfil (CP-32) en un teléfono con Expo Go. Para aceptar el sistema y cerrar el proyecto falta el piloto (CP-12, CP-15, BP-101…BP-103).
 
 ## 2. Ejecuciones registradas
 
@@ -41,8 +42,11 @@
 | 18/11 | `2d85ae6` | App Jest | Ídem | **98/98** · 9/9 suites · 63 s | `evidencias/2026-11-18_app_jest.txt` |
 | 18/11 | `2d85ae6` | Cobertura API y app | Ídem | API 244/244 (220 s) · app 98/98 (65 s) | `evidencias/2026-11-18_cobertura.txt` |
 | 18/11 | `2d85ae6` | Lint API y app | Ídem | 0 errores | RESUMEN_REVISION_CODIGO.md §4 |
+| 18/11 | `56c7134` | API Jest `fase2/perfil_privacidad` y app Jest `fase2` (HALL-02, HALL-03) | Ídem | 10/10 · 12/12 · lint sin errores | AUDITORIA_FINAL_GEMINI.md §7 |
+| 19/11 02:13 UTC (18/11 21:13 hora de Colombia) | `56c7134` | Sistema CP-01…CP-30 (Playwright 1.56, EDT 6.9) | Node 24.22 de Windows, API `:3999` y web `:8090` levantadas por Playwright, base `agrotech_e2e` en `localhost:5434`, Chromium 141 (Pixel 7), 1 worker | **51/51 pruebas · 28 PASA · 0 FALLA · 2 MANUAL** · 173,6 s | `evidencias/2026-11-18_e2e_sistema.txt`, `evidencias/2026-11-18_e2e_sistema_matriz.md` |
+| 19/11 02:16 UTC | `56c7134` | Banco BP-001…BP-103 (EDT 6.9) | Ídem | **100/100 PASA** · 3 manuales · 555 llamadas HTTP · 21 capturas · 2,0 min | `evidencias/2026-11-18_e2e_banco.txt`, `evidencias/2026-11-18_e2e_banco_matriz.md` |
 
-Todas las ejecuciones del 18/11 fueron secuenciales y en primer plano (`--runInBand`, `CI=true`, `--watchAll=false`), sin modos `--watch`.
+Todas las ejecuciones del 18/11 fueron secuenciales y en primer plano (`--runInBand`, `CI=true`, `--watchAll=false`), sin modos `--watch`. Playwright se ejecutó con `--workers=1` (la configuración trae 2) para no hacer trabajo en paralelo sobre `/mnt/c`, y al terminar detuvo la API y la vista web (puertos 3999 y 8090 libres).
 
 ## 3. Resultados de Jest por suite (18/11, commit `2d85ae6`)
 
@@ -95,7 +99,7 @@ Las suites más largas (sobre la carpeta de OneDrive): `comunicacion` 52,9 s, `f
 
 Todas las pruebas de la tabla están **automatizadas y listas para ejecutarse con el servidor activo**. Playwright levanta la API en `:3999` y la vista web en `:8090`; solo hacen falta PostgreSQL y las dependencias de `e2e/`.
 
-| Archivo | Proyecto | Pruebas | Casos | Requisito adicional | Última ejecución (16/11) |
+| Archivo | Proyecto | Pruebas | Casos | Requisito adicional | Última ejecución (18/11, `56c7134`) |
 |---|---|---|---|---|---|
 | `e2e/api/cuentas.spec.js` | api | 3 | CP-01, CP-02, RNF-04 | — | PASA |
 | `e2e/api/catalogo.spec.js` | api | 3 | CP-03, CP-05, CP-13 | — | PASA |
@@ -113,13 +117,13 @@ Todas las pruebas de la tabla están **automatizadas y listas para ejecutarse co
 | `e2e/banco/pedidos_comunicacion.api.spec.js` | banco (API) | 29 | BP-047 … BP-075 | — | 29/29 |
 | `e2e/banco/admin_rnf.api.spec.js` | banco (API) | 13 | BP-076 … BP-088 | — | 13/13 |
 | `e2e/banco/interfaz.ui.spec.js` | banco (UI) | 12 | BP-089 … BP-100 | — | 12/12 |
-| **Subtotal banco** | | **100** | 100 casos automatizados | | **100/100 (×3 = 300/300)** |
+| **Subtotal banco** | | **100** | 100 casos automatizados | | **100/100** (16/11: ×3 = 300/300) |
 
 **No automatizados (manuales):** CP-12 y BP-101 (usabilidad, SUS), CP-15 y BP-102 (push con la app cerrada; requiere el APK con Firebase), BP-103 (Android de gama baja). **Diseñados, cubiertos por Jest y todavía sin E2E:** CP-31 y CP-32.
 
-### 5.2 Por qué no se ejecutaron en esta revisión y cómo ejecutarlas
+### 5.2 Ejecución de la EDT 6.9 (18/11) y cómo repetirla
 
-En la revisión del 18/11 solo se ejecutó Jest. Las suites E2E no se repitieron sobre el commit `2d85ae6` porque `e2e/node_modules` no está instalado en el equipo y necesitan la API, la vista web compilada y Chromium. Queda programado en la EDT 6.9 (20/11, Julio Durán):
+La EDT 6.9 se adelantó al 18/11 y se ejecutó sobre el commit `56c7134` en este orden, un paso a la vez: instalación de `e2e/node_modules` (`npm ci`, Playwright 1.56.0) y de Chromium 141 con el npm de Windows; `npm run preparar` (migra la base `agrotech_e2e`, crea el administrador de pruebas y compila la vista web en 55 s); suite de sistema; banco. Los servidores los levantó y detuvo Playwright (`webServer`), sin reutilizar procesos previos: antes de empezar se comprobó que los puertos 3999 y 8090 estaban libres.
 
 ```bat
 :: En Windows (cmd), con PostgreSQL + PostGIS activo en localhost:5434
@@ -127,12 +131,17 @@ cd e2e
 npm ci
 npx playwright install chromium
 set E2E_DATABASE_URL=postgres://postgres:<clave>@localhost:5434/agrotech_e2e
-npm run preparar        :: crea/migra la base E2E y compila la vista web
-npm test                :: CP-01…CP-30 → resultados/informe-cp.md e informe-html/
-npm run banco           :: BP-001…BP-103 → informe del banco
+npm run preparar                  :: crea/migra la base E2E y compila la vista web
+npx playwright test --workers=1   :: CP-01…CP-30 → resultados/informe-cp.md e informe-html/
+npm run banco -- --workers=1      :: BP-001…BP-103 → resultados/banco/banco.md
 ```
 
-**Riesgo de regresión a vigilar:** «Mi perfil» ahora tiene una sección de foto encima de los campos. CP-21 (UI) y BP-096 localizan los campos por su etiqueta accesible, por lo que no deberían verse afectados, pero hay que confirmarlo en la ejecución del 20/11.
+**Riesgo de regresión vigilado:** «Mi perfil» tiene ahora una sección de foto encima de los campos. CP-21 (API y UI) y BP-096 pasaron: los campos se localizan por su etiqueta accesible y no se vieron afectados. `GET /ventas` (ERR-16) se cubrió con CP-11 (API y UI) y BP-069 (panel de ventas del productor), todos en PASA.
+
+**Observaciones de la ejecución:**
+- El banco se ejecutó una vez (el 16/11 se hicieron 3 repeticiones, 300/300); no hubo pruebas inestables ni reintentos.
+- CP-05 dio p95 del servidor de 290 ms con 10 consultas concurrentes (16/11: 97 ms). Sigue muy por debajo del umbral de 3 s (RNF-01); el aumento se atribuye a que la API corrió en el portátil de desarrollo sobre OneDrive, con Chromium en el mismo equipo. Conviene tomar la medición oficial de RNF-01 en el servidor de AWS.
+- CP-31 y CP-32 siguen fuera de la matriz de Playwright (solo Jest), y CP-32 falta en el teléfono con Expo Go.
 
 ## 6. Métricas de casos de prueba
 
@@ -145,7 +154,7 @@ npm run banco           :: BP-001…BP-103 → informe del banco
 | Pruebas Jest API | 244 | 244 | 244 | 0 | — | 100 % |
 | Pruebas Jest app | 98 | 98 | 98 | 0 | — | 100 % |
 
-Mediciones de RNF de la última ejecución E2E (16/11): CP-05 p95 del servidor 97 ms con 10 usuarios concurrentes y p95 de 1,09 s en 3G (umbral 3 s); CP-09 entrega por WebSocket p50 9 ms / p95 81 ms y pantalla a pantalla p95 129 ms; CP-28 tres avisos en 104 ms; CP-04 publicación 0,4 s después de volver la señal; CP-02 bloqueo de 15,0 min.
+Mediciones de RNF de la ejecución E2E del 18/11 (entre paréntesis, la del 16/11): CP-05 p95 del servidor 290 ms con 10 consultas concurrentes (97 ms) y p95 de 0,98 s en 3G (1,09 s; umbral 3 s); CP-09 entrega por WebSocket p50 11 ms / p95 18 ms (9 / 81 ms) y pantalla a pantalla p95 202 ms (129 ms); CP-28 tres avisos en 67 ms (104 ms); CP-04 publicación 1,0 s después de volver la señal (0,4 s); CP-24 búsqueda en 8 ms y resultados visibles en 284 ms; CP-02 bloqueo de 15,0 min.
 
 ## 7. Defectos
 
@@ -178,4 +187,4 @@ Hallazgos de la revisión del 18/11:
 
 ## 9. Conclusión
 
-La versión 1.1.1 (commit `2d85ae6`) cumple los criterios de salida automatizables del plan: 100 % de las pruebas en verde (244 API, 98 app), cobertura por encima de las metas (95,51 % y 83,26 % de líneas), 30/30 casos de sistema automatizables en PASA, banco estable (300/300) y ningún defecto abierto de severidad Alta o Media. Quedan dos condiciones antes de publicar la versión final (repetir E2E y banco, y verificar CP-32 en el teléfono) y el piloto para la aceptación del cliente.
+La versión 1.1.1 (commits `2d85ae6` y `56c7134`) cumple los criterios de salida automatizables del plan: 100 % de las pruebas en verde (244 API, 98 app), cobertura por encima de las metas (95,51 % y 83,26 % de líneas), 30/30 casos de sistema automatizables en PASA, E2E repetida tras los cambios del 18/11 (51/51 sistema, 100/100 banco) y ningún defecto abierto de severidad Alta o Media. **Estado: APTO CON CONDICIONES.** Antes de publicar la versión final queda una condición (verificar CP-32 en el teléfono con Expo Go) y, para la aceptación del cliente, el piloto.

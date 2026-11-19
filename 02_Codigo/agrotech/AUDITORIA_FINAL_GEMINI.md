@@ -292,7 +292,7 @@ Documentar la variable opcional `GOOGLE_SERVICES_JSON` leída por `app/app.confi
 
 | ID | Estado | Corrección aplicada | Verificación |
 |---|---|---|---|
-| **HALL-01** | ABIERTO (Mayor) · planificado | Sin cambios: requiere ejecutar Playwright con el servidor activo (EDT 6.9, 20/11), agregar `@CP-31`/`@CP-32` a `e2e/casos.js`, probar CP-32 en Expo Go y regularizar la EDT 5.4 (UCD) | Pendiente |
+| **HALL-01** | ⏳ PARCIAL (Mayor) · E2E resuelto | **Hecho (EDT 6.9, adelantada al 18/11):** Playwright 1.56 con Chromium 141 sobre `56c7134` (incluye los cambios de `2d85ae6`), API y web levantadas y detenidas por Playwright. **Pendiente:** probar CP-32 en un teléfono con Expo Go, agregar `@CP-31`/`@CP-32` a `e2e/casos.js` y regularizar la EDT 5.4 (UCD) | Sistema **51/51 pruebas · 28 PASA · 0 FALLA · 2 MANUAL** (173,6 s) · Banco **100/100 PASA** (555 llamadas HTTP, 2,0 min) · CP-21 y BP-096 («Mi perfil» con la foto) sin regresión · `docs/pruebas/evidencias/2026-11-18_e2e_*` |
 | **HALL-02** | ✅ RESUELTO | `api/tests/integration/fase2/perfil_privacidad.test.js`: valores límite de la foto de perfil, exactamente 300 KB → 200 y 300 KB + 1 byte → **413 `FOTO_MUY_GRANDE`**. La guarda de `perfil.service.js` (400) se mantiene como defensa en profundidad: Multer corta antes y por HTTP siempre responde 413 | `perfil_privacidad.test.js` **10/10 PASS** (11,2 s) |
 | **HALL-03** | ✅ RESUELTO | `app/src/componentes/PantallaPerfil.js`: `cambiarFoto()` llama a `actualizarUsuario({ fotoUrl })`. Además, el perfil se carga una vez por usuario (`usuario.id`) y no cada vez que cambia la sesión: con el parche propuesto tal cual, `actualizarUsuario` disparaba de nuevo `GET /perfil` y borraba los cambios del formulario sin guardar | `app/__tests__/fase2.test.js` **12/12 PASS** (14,0 s): la sesión guardada tiene la nueva `fotoUrl`, se hace un solo `GET /perfil` y el cambio sin guardar se conserva · `expo lint` sin errores |
 | **HALL-04** | ✅ RESUELTO | `docs/pruebas/REGISTRO_DE_ERRORES.md` §5: App **98/98**. Las filas de ERR-02 y ERR-04 conservan 97/97 porque registran la verificación de su fecha (16/11) | Revisión documental |
@@ -301,4 +301,4 @@ Documentar la variable opcional `GOOGLE_SERVICES_JSON` leída por `app/app.confi
 
 **Ejecución de verificación:** secuencial, en primer plano, con el Node 24.22 de Windows y PostgreSQL 17 + PostGIS en `localhost:5434`. Lint de la API y de la app sin errores. Los totales de las suites no cambian (API 244, app 98): se agregaron aserciones a pruebas existentes.
 
-**Veredicto actualizado:** 0 Críticos · 1 Mayor abierto (HALL-01, planificado en EDT 6.9) · 0 Menores abiertos.
+**Veredicto actualizado:** 0 Críticos · 1 Mayor parcialmente resuelto (HALL-01: E2E y banco en verde sobre `56c7134`; queda CP-32 en el teléfono, `@CP-31`/`@CP-32` en Playwright y la EDT 5.4) · 0 Menores abiertos.
