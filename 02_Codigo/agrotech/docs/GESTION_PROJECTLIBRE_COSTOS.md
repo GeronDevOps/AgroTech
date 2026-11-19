@@ -11,7 +11,7 @@
 | Documentos relacionados | Entrega 4 (Plan de gestión, capítulos 3–5) · `docs/PLAN_DESARROLLO.md` · `docs/pruebas/PLAN_Y_DISENO_PRUEBAS.md` · `docs/pruebas/INFORME_EJECUCION_PRUEBAS.md` · `RESUMEN_REVISION_CODIGO.md` · `docs/despliegue/RUNBOOK.md` §8 |
 ## 1. Fuente del cronograma y hallazgos de la inspección
 
-En `01_Documentacion/03_Gestion` hay **dos archivos y ningún `.pod`**: `AgroTech_Cronograma.xml` (proyecto de ProjectLibre guardado en formato XML de Microsoft Project, *MSPDI*) y `gantt.png` (Gantt v2.2 con el corte de avance al 11/10). La Entrega 4 (§4) confirma que el cronograma se gestiona en ProjectLibre con ese XML. El archivo se leyó con Python en modo solo lectura y su SHA-256 se verificó antes y después de cada proceso: está intacto.
+Al iniciar esta revisión, `01_Documentacion/03_Gestion` tenía **dos archivos y ningún `.pod`**: `AgroTech_Cronograma.xml` (proyecto de ProjectLibre guardado en formato XML de Microsoft Project, *MSPDI*) y `gantt.png` (Gantt v2.2 con el corte de avance al 11/10). La Entrega 4 (§4) confirma que el cronograma se gestiona en ProjectLibre con ese XML. El archivo se leyó con Python en modo solo lectura y su SHA-256 se verificó antes y después de cada proceso: está intacto. Esta revisión agregó dos archivos a la carpeta (ahora son cuatro): `proyecto_agrotech_actualizado.xml` (§7) y `PRESUPUESTO_Y_CRONOGRAMA_AGROTECH.md` (copia de este documento).
 
 | Elemento leído | Valor en el XML v2.2 |
 |---|---|
@@ -274,11 +274,11 @@ Los costos de evaluación incluyen el costo fijo de los teléfonos de prueba (6.
 | Presupuesto a la conclusión (BAC, costo directo) | $ 30.495.000 | |
 | Valor planificado (PV) al 18/11 | $ 24.825.000 | 81,4 % del BAC |
 | Valor ganado (EV) al 18/11 | $ 24.486.450 | 80,3 % del BAC |
-| Variación del cronograma (SV = EV − PV) | −$ 338.550 | Atraso equivalente a la actividad 5.4 (validación UCD, $ 345.000), programada el 13/10 y sin ejecutar |
+| Variación del cronograma (SV = EV − PV) | −$ 338.550 | Atraso equivalente a la actividad 5.4 (validación UCD, −$ 345.000), programada el 13/10 y sin ejecutar. Los +$ 6.450 restantes vienen del redondeo de la 6.1: el PV usa 2/3 exactos ($ 1.290.000) y el EV el 67 % del XML ($ 1.296.450); (0,67 − 2/3) × $ 1.935.000 = $ 6.450 |
 | Índice de desempeño del cronograma (SPI = EV / PV) | **0,986** | Prácticamente en plan |
 | Costo real (AC), CV y CPI | No disponibles | Las horas reales en Jira no están en este repositorio. Al registrarlas en ProjectLibre (trabajo real por asignación) se obtienen CV = EV − AC y CPI = EV / AC |
 
-El PV se calcula con la fracción de días hábiles programados transcurridos al cierre del 18/11. El EV usa el % completado del XML v2.3. 6.1 al 67 % es una estimación: pasaron 2 de sus 3 días y las pruebas de sistema ya se ejecutaron, falta la aceptación del piloto.
+El PV se calcula con la fracción de días hábiles programados transcurridos al cierre del 18/11. El EV usa el % completado del XML v2.3. Los dos prorratean el costo fijo de cada tarea con el mismo porcentaje que el trabajo. ProjectLibre, en cambio, causa los costos fijos al final de la tarea (`FixedCostAccrual` = 3), así que en sus indicadores de valor ganado la 6.1 no sumará esos $ 900.000 hasta terminar. 6.1 al 67 % es una estimación: pasaron 2 de sus 3 días y las pruebas de sistema ya se ejecutaron, falta la aceptación del piloto.
 
 ## 7. Archivo para ProjectLibre: `proyecto_agrotech_actualizado.xml`
 

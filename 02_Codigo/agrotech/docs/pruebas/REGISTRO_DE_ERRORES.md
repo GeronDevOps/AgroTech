@@ -128,7 +128,7 @@ Insumo del análisis de errores del plan de métricas (Entrega 4) y de la gesti�
 | Nivel | Resultado |
 |---|---|
 | API (Jest: unitarias + integración) | 244/244 |
-| App (Jest + Testing Library, SDK 58) | 97/97 |
+| App (Jest + Testing Library, SDK 58) | 98/98 (97 al 16/11 + la prueba de CP-32, ERR-17, del 18/11) |
 | Pruebas de sistema CP-01 … CP-30 (Playwright) | 51/51 pruebas · 28 PASA · 2 manuales |
 | Banco de pruebas BP-001 … BP-103 | 100/100 · 3 manuales |
 | Lint API y app | Sin errores |

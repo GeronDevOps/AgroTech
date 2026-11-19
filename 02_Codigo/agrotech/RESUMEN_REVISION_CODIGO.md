@@ -12,7 +12,7 @@
 
 | Carpeta | Qué se revisó | Estado |
 |---|---|---|
-| `api/` (Node 22 + Express 5 + PostgreSQL/PostGIS) | `src/server.js`, `app.js`, `routes.js`; 17 módulos en `src/modules/<módulo>/` con el patrón `routes → service → repository (+ validacion)`; middleware (autenticación, CORS, errores); `config/env.js`; almacenamiento local/S3; WebSocket; scripts | Organización consistente. Errores de PostgreSQL traducidos a HTTP en `error-handler.js` (UUID mal formado → 400, llaves duplicadas → 409) |
+| `api/` (Node 22 + Express 5 + PostgreSQL/PostGIS) | `src/server.js`, `app.js`, `routes.js` (17 montajes bajo `/api/v1`: `mensajes` y `calificaciones` se montan también anidados en `/pedidos/:id/…`); 16 módulos en `src/modules/<módulo>/` (15 con rutas HTTP + `correo`, transversal) con el patrón `routes → service → repository (+ validacion)`; middleware (autenticación, CORS, errores); `config/env.js`; almacenamiento local/S3; WebSocket; scripts | Organización consistente. Errores de PostgreSQL traducidos a HTTP en `error-handler.js` (UUID mal formado → 400, llaves duplicadas → 409) |
 | `app/` (Expo SDK 58, expo-router) | Rutas en `src/app/` por rol (`(auth)`, `consumidor`, `productor`, `administrador`); cliente HTTP `src/api/`; base local SQLite, cola y motor de sincronización; contextos de sesión, carrito y tiempo real | Organización consistente |
 | `db/migrations/` | 001 … 006, versionadas y con checksum independiente de CRLF/LF | Correcto |
 | `e2e/` | Playwright: pruebas de sistema (CP) y banco (BP) | No se ejecutó (requiere API + vista web levantadas); se revisaron sus aserciones de reloj |

@@ -80,6 +80,11 @@ describe('CU-09 · Gestionar el perfil (RF-09 · AGRO-23)', () => {
     expect(r.status).toBe(200);
     expect(r.body.perfil.fotoUrl).toMatch(/\/fotos\/perfiles\/.+\.jpg$/);
     expect((await subir(Buffer.from('no es una foto'))).status).toBe(400);
+    // HALL-02: valor límite de 300 KB (RNF-09). Multer corta el archivo y el manejador de errores responde 413.
+    expect((await subir(jpeg(300 * 1024))).status).toBe(200);
+    const grande = await subir(jpeg(300 * 1024 + 1));
+    expect(grande.status).toBe(413);
+    expect(grande.body.error.codigo).toBe('FOTO_MUY_GRANDE');
   });
 });
 

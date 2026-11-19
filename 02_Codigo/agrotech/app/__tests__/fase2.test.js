@@ -120,12 +120,17 @@ describe('CU-09 · Mi perfil', () => {
       'GET /perfil': () => [200, { perfil }],
       'PUT /perfil/foto': () => [200, { perfil: { ...perfil, fotoUrl } }],
     });
+    await escribir('Vereda o dirección (opcional)', 'Barrio La Libertad'); // cambio aún sin guardar
     await pulsar('Poner foto de perfil');
     expect(await screen.findByTestId('aviso-perfil')).toHaveTextContent(/Foto de perfil actualizada/);
     expect(screen.getByTestId('foto-perfil').props.source).toEqual({ uri: fotoUrl });
     const envio = llamadas.filter((l) => l.clave === 'PUT /perfil/foto');
     expect(envio).toHaveLength(1);
     expect(envio[0].cuerpo.foto).toBeTruthy();
+    // HALL-03: la sesión guardada conoce la foto nueva y el perfil no se recarga (el cambio sin guardar sigue ahí).
+    await waitFor(() => expect(JSON.parse(global.__almacenSeguro.get('agrotech.sesion')).usuario.fotoUrl).toBe(fotoUrl));
+    expect(llamadas.filter((l) => l.clave === 'GET /perfil')).toHaveLength(1);
+    expect(screen.getByLabelText('Vereda o dirección (opcional)').props.value).toBe('Barrio La Libertad');
 
     await act(async () => { global.__red.desconectar(); });
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cambiar foto de perfil' }).props.accessibilityState.disabled).toBe(true));

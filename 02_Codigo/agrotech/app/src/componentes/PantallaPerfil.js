@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CampoTexto } from './CampoTexto';
 import { BotonGrande } from './BotonGrande';
@@ -31,6 +31,11 @@ export function PantallaPerfil() {
   const [errores, setErrores] = useState({});
   const [aviso, setAviso] = useState(null);
   const [enviando, setEnviando] = useState(false);
+  // Respaldo sin señal: la sesión vigente, sin volver a cargar el perfil cada vez que la sesión cambia
+  // (actualizarUsuario tras guardar o cambiar la foto); si se recargara, se perderían los cambios sin guardar.
+  const usuarioActual = useRef(usuario);
+  usuarioActual.current = usuario;
+  const idUsuario = usuario ? usuario.id : null;
 
   const mostrar = useCallback((p) => {
     const d = Object.fromEntries(CAMPOS.map((c) => [c, p[c] || '']));
@@ -43,10 +48,10 @@ export function PantallaPerfil() {
   useEffect(() => {
     api.perfil().then((r) => mostrar(r.perfil)).catch((err) => {
       // Sin señal se edita sobre los datos de la sesión guardada.
-      if (err.codigo === 'SIN_CONEXION') mostrar(usuario);
+      if (err.codigo === 'SIN_CONEXION') mostrar(usuarioActual.current);
       else setAviso({ tipo: 'error', mensaje: mensajeDeError(err) });
     });
-  }, [mostrar, usuario]);
+  }, [mostrar, idUsuario]);
 
   if (!datos) return <View style={styles.centro}>{aviso ? <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} /> : <ActivityIndicator size="large" color={colores.primario} />}</View>;
 
@@ -76,6 +81,8 @@ export function PantallaPerfil() {
       setEnviando(true);
       const r = await api.cambiarFotoPerfil(elegida.foto.uri);
       setFotoUrl(r.perfil.fotoUrl || null);
+      // HALL-03: la sesión guardada también conoce la foto nueva (respaldo de «Mi perfil» sin señal).
+      await actualizarUsuario({ fotoUrl: r.perfil.fotoUrl || null });
       setAviso({ tipo: 'info', mensaje: '✓ Foto de perfil actualizada.' });
     } catch (err) {
       if (err instanceof ErrorFoto) setAviso({ tipo: 'error', mensaje: err.message });
