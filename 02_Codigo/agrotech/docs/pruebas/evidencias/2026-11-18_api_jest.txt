@@ -1,0 +1,36 @@
+# Jest · API · 18/11/2026 · después de la revisión (commit 2d85ae6)
+# Comando: cd api && set CI=true && npx jest --runInBand --watchAll=false --silent  (Node 24.22 de Windows, PostgreSQL 17 + PostGIS en localhost:5434)
+PASS tests/integration/auth.test.js (17.022 s)
+PASS tests/integration/comunicacion.test.js (52.883 s)
+PASS tests/integration/sync.test.js (32.206 s)
+PASS tests/integration/productos.test.js (24.037 s)
+PASS tests/integration/pedidos.test.js (31.614 s)
+PASS tests/integration/fase2/reportes_admin.test.js (32.665 s)
+PASS tests/integration/fase2/productos.test.js (18.903 s)
+PASS tests/integration/pagos.test.js (15.692 s)
+PASS tests/integration/fase2/pedidos.test.js (13.887 s)
+PASS tests/integration/sembrar.test.js (12.815 s)
+PASS tests/integration/tiempoReal.test.js (11.227 s)
+PASS tests/integration/fase2/perfil_privacidad.test.js (11.395 s)
+PASS tests/integration/fase2/cuentas.test.js (10.269 s)
+PASS tests/integration/push.test.js (10.271 s)
+PASS tests/integration/ventas.test.js (5.591 s)
+PASS tests/integration/fotos-s3.test.js
+PASS tests/integration/fase2/notificaciones.test.js (5.295 s)
+PASS tests/unit/fcm.test.js
+PASS tests/integration/salud.test.js
+PASS tests/unit/fotos-s3.test.js
+PASS tests/unit/autenticacion.test.js
+PASS tests/unit/fase2.validaciones.test.js
+PASS tests/unit/arranque.test.js
+PASS tests/unit/informe-piloto.test.js
+PASS tests/unit/productos.test.js
+PASS tests/unit/error-handler.test.js
+PASS tests/unit/auth.validacion.test.js
+PASS tests/unit/salud.service.test.js
+PASS tests/unit/auth.service.test.js
+
+Test Suites: 29 passed, 29 total
+Tests:       244 passed, 244 total
+Snapshots:   0 total
+Time:        313.912 s

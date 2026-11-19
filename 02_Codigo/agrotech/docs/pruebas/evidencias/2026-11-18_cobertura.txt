@@ -1,0 +1,18 @@
+# Cobertura · 18/11/2026 · commit 2d85ae6 · Node 24.22 de Windows
+# API:  cd api && npx jest --runInBand --watchAll=false --silent --coverage --coverageReporters=text-summary
+Statements   : 91.35% ( 2494/2730 )
+Branches     : 79.78% ( 1476/1850 )
+Functions    : 93.01% ( 519/558 )
+Lines        : 95.51% ( 2172/2274 )
+Test Suites: 29 passed, 29 total
+Tests:       244 passed, 244 total
+Time:        219.768 s
+
+# App:  cd app && npx jest --runInBand --watchAll=false --silent --coverage --collectCoverageFrom=src/**/*.js --coverageReporters=text-summary
+Statements   : 79.16% ( 2155/2722 )
+Branches     : 71.58% ( 1542/2154 )
+Functions    : 71.16% ( 580/815 )
+Lines        : 83.26% ( 1905/2288 )
+Test Suites: 9 passed, 9 total
+Tests:       98 passed, 98 total
+Time:        65.447 s

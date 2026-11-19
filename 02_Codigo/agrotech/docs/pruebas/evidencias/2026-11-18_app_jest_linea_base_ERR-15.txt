@@ -1,0 +1,24 @@
+# Jest · app · 18/11/2026 · LÍNEA BASE antes de la revisión (ERR-15): resumen de fallos
+FAIL __tests__/sincronizacion.test.js (73.03 s)
+  ● CU-02 + CU-17 · Publicar sin señal (CA-04) › queda "Pendiente por sincronizar" y se publica sola al volver la red, con el mismo id
+    thrown: "Exceeded timeout of 5000 ms for a test.
+        thrown: "Exceeded timeout of 5000 ms for a test.
+  ● CU-02 + CU-17 · Publicar sin señal (CA-04) › CU-17 A1: publicación rechazada queda "Con error" con su motivo y se puede descartar
+    The imperative router is unavailable before the first render has finished.
+  ● RF-10a + CU-17 · Editar sin señal › dos cambios sin señal se combinan en una operación que se envía a /sync/push al volver la red
+    The imperative router is unavailable before the first render has finished.
+  ● RF-10a + CU-17 · Editar sin señal › CU-17 A2: con conflicto prevalece el servidor; "Con error" permite descartar el cambio
+  ● RF-10a + CU-17 · Editar sin señal › cerrar sesión con cambios sin enviar pide confirmación y luego borra la copia local
+  ● CU-03 / CU-04 / CU-15 + CU-17 · Consultar sin señal › el catálogo sale de la copia del teléfono con los mismos filtros y la fecha de sincronización
+  ● CU-03 / CU-04 / CU-15 + CU-17 · Consultar sin señal › el carrito y su clave sobreviven al cierre de la app: el reintento no duplica el pedido
+  ● CU-03 / CU-04 / CU-15 + CU-17 · Consultar sin señal › CU-15: sin señal los pedidos y su detalle salen de la copia local
+PASS __tests__/comunicacion.test.js (12.578 s)
+PASS __tests__/pedidos.test.js (8.473 s)
+PASS __tests__/fase2.test.js (7.3 s)
+PASS __tests__/productos.test.js (6.404 s)
+PASS __tests__/cuenta.test.js
+PASS __tests__/navegacion.test.js (7.388 s)
+PASS __tests__/servidor.test.js
+PASS __tests__/cliente.test.js
+Test Suites: 1 failed, 8 passed, 9 total
+Tests:       8 failed, 89 passed, 97 total

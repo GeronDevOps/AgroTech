@@ -1,0 +1,13 @@
+# Jest · API · 18/11/2026 · LÍNEA BASE antes de la revisión (ERR-14): resumen del fallo (extracto de la consola)
+# Comando: cd api && set CI=true && npx jest --runInBand --watchAll=false
+FAIL tests/integration/auth.test.js (15.012 s)
+  ● POST /api/v1/auth/sesion (CU-21) › CP-02: 5 intentos fallidos bloquean 15 minutos, aun con la contraseña correcta
+    expect(received).toBeLessThanOrEqual(expected)
+    Expected: <= 15
+    Received:    15.00005
+      101 |     const minutos = (new Date(quinto.body.error.detalles.bloqueadoHasta) - Date.now()) / 60000;
+      102 |     expect(minutos).toBeGreaterThan(14);
+    > 103 |     expect(minutos).toBeLessThanOrEqual(15);
+Test Suites: 1 failed, 28 passed, 29 total
+Tests:       1 failed, 243 passed, 244 total
+Time:        293.077 s

@@ -1,0 +1,16 @@
+# Jest · app · 18/11/2026 · después de la revisión (commit 2d85ae6)
+# Comando: cd app && set CI=true && npx jest --runInBand --watchAll=false --silent
+PASS __tests__/sincronizacion.test.js (12.886 s)
+PASS __tests__/fase2.test.js (5.746 s)
+PASS __tests__/comunicacion.test.js (11.807 s)
+PASS __tests__/pedidos.test.js (15.423 s)
+PASS __tests__/navegacion.test.js (5.902 s)
+PASS __tests__/productos.test.js (6.33 s)
+PASS __tests__/cuenta.test.js
+PASS __tests__/cliente.test.js
+PASS __tests__/servidor.test.js
+
+Test Suites: 9 passed, 9 total
+Tests:       98 passed, 98 total
+Snapshots:   0 total
+Time:        62.922 s, estimated 220 s
